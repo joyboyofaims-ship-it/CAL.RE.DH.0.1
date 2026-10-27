@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f766e">
+<title>Histamine Bioassay Simulator</title>
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script>tailwind.config = { darkMode: ['selector', '[data-theme="dark"]'] };</script>
+<style>
+:root{--bg:#f8fafc;--card:#fff;--ink:#0f172a;--mute:#64748b;--line:#e2e8f0;--std:#dc2626;--std-bg:#fef2f2;--test:#2563eb;--test-bg:#eff6ff;--acc:#0f766e;--warn:#92400e;--warnbg:#fffbeb;--ok:#166534;--okbg:#ecfdf5;--field:#fff;color-scheme:light}
+:root[data-theme="dark"]{--bg:#0b1220;--card:#131c2e;--ink:#e5e7eb;--mute:#94a3b8;--line:#263247;--std:#f87171;--std-bg:#2c1618;--test:#60a5fa;--test-bg:#14243b;--acc:#2dd4bf;--warn:#fbbf24;--warnbg:#2a2110;--ok:#4ade80;--okbg:#0f2a1d;--field:#0e1627;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.4;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.card-box{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+input,select{width:100%;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--field);color:var(--ink);font-size:14px;outline:none}
+input:focus,select:focus{border-color:var(--acc);box-shadow:0 0 0 2px rgba(45,212,191,.2)}
+button{border:0;border-radius:8px;padding:9px 12px;font-size:14px;font-weight:600;cursor:pointer;color:#fff;background:var(--acc);transition:all .15s ease}
+button:hover{opacity:.92}button:active{transform:scale(.98)}
+button.btn-std{background:var(--std)}button.btn-test{background:var(--test)}
+button.btn-ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.scroll-area{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--field);-webkit-overflow-scrolling:touch}
+canvas{display:block}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin:0 4px 0 8px;vertical-align:middle}
+.seg-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.seg-btns button{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.seg-btns button.active{background:var(--acc);color:#fff;border-color:var(--acc)}
+.note-box{border-radius:8px;padding:12px;font-size:13px;margin-top:12px;display:none;line-height:1.5}
+.note-box.warn{display:block;background:var(--warnbg);color:var(--warn);border:1px solid rgba(245,158,11,.25)}
+.note-box.ok{display:block;background:var(--okbg);color:var(--ok);border:1px solid rgba(16,185,129,.25)}
+.res-val{font-size:20px;font-weight:700;margin:4px 0}
+.badge-std{background:var(--std-bg);color:var(--std);border:1px solid var(--std)}
+.badge-test{background:var(--test-bg);color:var(--test);border:1px solid var(--test)}
+</style>
+</head>
+<body class="p-3 sm:p-6 min-h-screen">
+<div class="max-w-4xl mx-auto wrap">
+  <div class="flex items-center justify-between mb-4">
+    <div>
+      <h1 class="text-xl sm:text-2xl font-bold tracking-tight">Histamine Bioassay Simulator</h1>
+      <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">Guinea-pig ileum organ bath preparation &amp; concentration determination</p>
+    </div>
+    <button id="themeToggle" class="btn-ghost text-xs px-3 py-1.5 rounded-lg flex items-center gap-1">
+      <span id="themeIcon">🌙</span> <span id="themeLabel">Dark</span>
+    </button>
+  </div>
+
+  <div class="card-box">
+    <h2 class="text-sm font-semibold mb-3 text-slate-700 dark:text-slate-200 uppercase tracking-wider">1. Dose Setup &amp; Control</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+      <div>
+        <label for="cs" class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Standard Concentration (µg/mL)</label>
+        <input id="cs" type="number" inputmode="decimal" value="10" step="any" min="0">
+      </div>
+      <div>
+        <label for="vol" class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Dose Volume (mL)</label>
+        <div class="flex gap-2">
+          <input id="vol" type="number" inputmode="decimal" value="0.2" step="any" min="0">
+          <button id="btnHalf" class="btn-ghost px-3 py-1 text-xs whitespace-nowrap" title="Halve volume">÷ 2</button>
+          <button id="btnDouble" class="btn-ghost px-3 py-1 text-xs whitespace-nowrap" title="Double volume">× 2</button>
+        </div>
+      </div>
+    </div>
+    <div class="mb-4">
+      <span class="text-xs text-slate-400 block mb-1">Quick Volume Select:</span>
+      <div class="flex flex-wrap gap-1.5" id="chips"></div>
+    </div>
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+      <button class="btn-std" id="addS">+ Standard Dose</button>
+      <button class="btn-test" id="addT">+ Test Dose</button>
+      <button class="btn-ghost" id="undo">Undo Last</button>
+      <button class="btn-ghost" id="newU">Reset / New Unknown</button>
+    </div>
+    <div class="note-box" id="msg"></div>
+  </div>
+
+  <div class="card-box">
+    <div class="flex items-center justify-between mb-2">
+      <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-200 uppercase tracking-wider">Simulated Kymograph Tracing</h2>
+      <div class="text-xs text-slate-500">
+        <span class="dot" style="background:var(--std)"></span>Standard
+        <span class="dot" style="background:var(--test)"></span>Test (Unknown)
+      </div>
+    </div>
+    <div class="scroll-area mb-4" id="scroll"><canvas id="cv"></canvas></div>
+    <div class="mt-4">
+      <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Observation Table</h3>
+      <div class="overflow-x-auto border border-slate-200 dark:border-slate-800 rounded-lg">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead>
+            <tr class="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-b border-slate-200 dark:border-slate-700">
+              <th class="p-2 text-center">#</th>
+              <th class="p-2">Type</th>
+              <th class="p-2 text-right">Conc. (µg/mL)</th>
+              <th class="p-2 text-right">Vol (mL)</th>
+              <th class="p-2 text-right">Dose (µg)</th>
+              <th class="p-2 text-right">Amplitude (mm)</th>
+              <th class="p-2 text-right">% Emax</th>
+            </tr>
+          </thead>
+          <tbody id="obsTableBody" class="divide-y divide-slate-200 dark:divide-slate-800"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="card-box">
+    <h2 class="text-sm font-semibold mb-3 text-slate-700 dark:text-slate-200 uppercase tracking-wider">2. Concentration Calculation &amp; Analysis</h2>
+    <div class="seg-btns">
+      <button id="mMatch" class="active">Matching Method</button>
+      <button id="mBr">Bracketing Method (Log-Dose)</button>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+      <div id="stdBox">
+        <label for="stdSel" class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Standard Dose (S)</label>
+        <select id="stdSel"></select>
+      </div>
+      <div id="loBox" class="hidden">
+        <label for="loSel" class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Lower Standard (S1)</label>
+        <select id="loSel"></select>
+      </div>
+      <div id="hiBox" class="hidden">
+        <label for="hiSel" class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Higher Standard (S2)</label>
+        <select id="hiSel"></select>
+      </div>
+      <div>
+        <label for="testSel" class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Test Dose (T)</label>
+        <select id="testSel"></select>
+      </div>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+      <button id="calc" class="w-full">Calculate Concentration</button>
+      <button class="btn-ghost w-full" id="reveal">Check with True Value</button>
+    </div>
+    <div class="note-box" id="out"></div>
+    <div class="note-box" id="truth"></div>
+  </div>
+
+  <details class="card-box cursor-pointer">
+    <summary class="font-semibold text-sm text-slate-700 dark:text-slate-200">Bioassay Principles &amp; Protocol</summary>
+    <div class="mt-3 text-xs sm:text-sm text-slate-600 dark:text-slate-400 space-y-2 leading-relaxed">
+      <p><b>Guinea-Pig Ileum Assay:</b> Histamine causes dose-dependent smooth muscle contraction via H<sub>1</sub> receptors. Peak height (mm) and % of maximum contraction (% Emax) are read from the kymograph.</p>
+      <p><b>1. Matching Method:</b>
+      <br>Find a standard volume (V<sub>s</sub>) of known concentration (A<sub>s</sub>) giving the same response as the test volume (V<sub>t</sub>).
+      <br><code class="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-xs font-mono">Unknown Conc (A_t) = (A_s × V_s) / V_t</code></p>
+      <p><b>2. Bracketing Method (Interpolation):</b>
+      <br>Choose a lower standard (S<sub>1</sub>) and higher standard (S<sub>2</sub>) so the test response (R<sub>t</sub>) lies between R<sub>1</sub> and R<sub>2</sub>. Using semi-log dose-response linearity:
+      <br><code class="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-xs font-mono">Log(Dose_t) = Log(Dose_1) + [(R_t - R_1)/(R_2 - R_1)] × [Log(Dose_2) - Log(Dose_1)]</code></p>
+      <p><b>Valid Range:</b> Responses below 2.0 mm (&lt;4.4% Emax) or at the 45 mm ceiling (100% Emax) are outside the linear range and flagged as inaccurate.</p>
+    </div>
+  </details>
+</div>
+
+<script>
+var $ = function (id) { return document.getElementById(id); };
+var MAXMM = 45, MINMM = 2.0, SLOT = 85, H = 240, BASE = 200, PX = 3.8;
+var events = [], U = newUnknown(), mode = 'match', lastEstimate = null;
+
+function newUnknown() { return Math.round((2 + Math.random() * 18) * 10) / 10; }
+function f(n, d) { return Number(n).toFixed(d === undefined ? 2 : d); }
+
+// Log-linear dose-response: 2 ug -> 20 mm; each doubling adds 10 mm.
+// 0.5 ug or less -> 0 mm (below threshold); about 11.3 ug and above -> 45 mm ceiling.
+function mmFor(amountUg) {
+  if (!(amountUg > 0)) return 0;
+  var response = 20 + 10 * Math.log2(amountUg / 2);
+  return Math.min(Math.max(response, 0), MAXMM);
+}
+
+function say(id, text, cls) {
+  var n = $(id);
+  if (!text) { n.className = 'note-box'; n.innerHTML = ''; return; }
+  n.className = 'note-box ' + cls;
+  n.innerHTML = text;
+}
+
+$('btnDouble').onclick = function () {
+  var v = parseFloat($('vol').value) || 0;
+  if (v * 2 <= 5) $('vol').value = f(v * 2, 2);
+};
+$('btnHalf').onclick = function () {
+  var v = parseFloat($('vol').value) || 0;
+  if (v / 2 >= 0.01) $('vol').value = f(v / 2, 2);
+};
+
+// Quick volume chips
+[0.05, 0.1, 0.2, 0.4, 0.8, 1.6].forEach(function (v) {
+  var b = document.createElement('button');
+  b.className = 'btn-ghost text-xs px-2.5 py-1';
+  b.textContent = v + ' mL';
+  b.onclick = function () { $('vol').value = v; };
+  $('chips').appendChild(b);
+});
+
+function addDose(type) {
+  var cs = parseFloat($('cs').value);
+  var v = parseFloat($('vol').value);
+  if (!(cs > 0) || !(v >= 0.01) || v > 5) {
+    say('msg', 'Enter a valid concentration (> 0) and dose volume between 0.01 and 5.0 mL.', 'warn');
+    return;
+  }
+  say('msg', '');
+  var totalDoseUg = (type === 'std' ? cs : U) * v;
+  var mm = mmFor(totalDoseUg);
+  if (mm > 0 && mm < MAXMM) {
+    mm = Math.min(Math.max(mm + (Math.random() - 0.5) * 0.6, 0), MAXMM);
+  }
+  mm = Math.round(mm * 10) / 10;
+  var pctEmax = Math.min(Math.round((mm / MAXMM) * 1000) / 10, 100);
+  events.push({ type: type, vol: v, cs: type === 'std' ? cs : null, doseUg: totalDoseUg, mm: mm, pctEmax: pctEmax });
+  render(true);
+}
+
+function render(toEnd) {
+  drawKymograph(toEnd);
+  updateObservationTable();
+  fillSelects();
+  lastEstimate = null;
+  say('out', '');
+  say('truth', '');
+}
+
+function drawKymograph(toEnd) {
+  var wrap = $('scroll'), cv = $('cv');
+  var cs = getComputedStyle(document.documentElement);
+  var ink = cs.getPropertyValue('--ink').trim() || '#0f172a';
+  var mute = cs.getPropertyValue('--mute').trim() || '#64748b';
+  var line = cs.getPropertyValue('--line').trim() || '#e2e8f0';
+  var cStd = cs.getPropertyValue('--std').trim() || '#dc2626';
+  var cTest = cs.getPropertyValue('--test').trim() || '#2563eb';
+
+  var reqWidth = Math.max(wrap.clientWidth, (events.length + 1) * SLOT + 60);
+  var dpr = window.devicePixelRatio || 1;
+  cv.width = reqWidth * dpr;
+  cv.height = H * dpr;
+  cv.style.width = reqWidth + 'px';
+  cv.style.height = H + 'px';
+
+  var ctx = cv.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, reqWidth, H);
+  ctx.lineWidth = 1;
+
+  var m, y;
+  for (m = 0; m <= 40; m += 10) {
+    y = BASE - m * PX;
+    ctx.strokeStyle = line;
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(reqWidth, y); ctx.stroke();
+    ctx.fillStyle = mute; ctx.textAlign = 'left'; ctx.font = '11px system-ui, sans-serif';
+    ctx.fillText(m + ' mm (' + f((m / MAXMM) * 100, 1) + '%)', 6, y - 3);
+  }
+  // Dashed 45 mm ceiling
+  y = BASE - MAXMM * PX;
+  ctx.setLineDash([5, 4]);
+  ctx.strokeStyle = mute;
+  ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(reqWidth, y); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = mute; ctx.textAlign = 'left';
+  ctx.fillText('45 mm (100% Emax)', 6, y - 3);
+
+  ctx.strokeStyle = ink;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(0, BASE);
+
+  if (events.length === 0) {
+    ctx.lineTo(reqWidth, BASE);
+    ctx.stroke();
+    return;
+  }
+
+  events.forEach(function (e, i) {
+    var xStart = 50 + i * SLOT;
+    var py = BASE - e.mm * PX;
+    ctx.lineTo(xStart, BASE);
+    if (e.mm > 0) {
+      ctx.bezierCurveTo(xStart + 8, py, xStart + 14, py, xStart + 22, py);
+      ctx.bezierCurveTo(xStart + 38, py, xStart + 50, BASE, xStart + SLOT - 12, BASE);
+    } else {
+      ctx.lineTo(xStart + SLOT - 12, BASE);
+    }
+  });
+  ctx.lineTo(reqWidth, BASE);
+  ctx.stroke();
+
+  events.forEach(function (e, i) {
+    var xStart = 50 + i * SLOT;
+    var py = BASE - e.mm * PX;
+    ctx.textAlign = 'center';
+    ctx.fillStyle = e.type === 'std' ? cStd : cTest;
+    ctx.font = 'bold 10px system-ui, sans-serif';
+    ctx.fillText(f(e.mm, 1) + 'mm', xStart + 22, Math.max(py - 16, 12));
+    ctx.font = '9px system-ui, sans-serif';
+    ctx.fillText('(' + f(e.pctEmax, 1) + '%)', xStart + 22, Math.max(py - 5, 23));
+    ctx.font = 'bold 11px system-ui, sans-serif';
+    ctx.fillText(e.type === 'std' ? 'Std' : 'Test', xStart + 22, BASE + 15);
+    ctx.font = '10px system-ui, sans-serif';
+    ctx.fillText(e.vol + ' mL', xStart + 22, BASE + 28);
+  });
+
+  if (toEnd) wrap.scrollLeft = wrap.scrollWidth;
+}
+
+function updateObservationTable() {
+  var tbody = $('obsTableBody');
+  if (events.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" class="p-4 text-center text-slate-400 italic">No doses administered yet. Add standard or test doses above.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = events.map(function (e, i) {
+    var isStd = e.type === 'std';
+    return '<tr>' +
+      '<td class="p-2 text-center font-bold text-slate-500">' + (i + 1) + '</td>' +
+      '<td class="p-2"><span class="px-2 py-0.5 rounded-full text-xs font-semibold ' + (isStd ? 'badge-std' : 'badge-test') + '">' + (isStd ? 'Standard' : 'Test (Unknown)') + '</span></td>' +
+      '<td class="p-2 text-right font-mono">' + (isStd ? f(e.cs, 2) : '—') + '</td>' +
+      '<td class="p-2 text-right font-mono">' + f(e.vol, 2) + '</td>' +
+      '<td class="p-2 text-right font-mono">' + (isStd ? f(e.doseUg, 2) : '—') + '</td>' +
+      '<td class="p-2 text-right font-bold text-teal-600 dark:text-teal-400 font-mono">' + f(e.mm, 1) + ' mm</td>' +
+      '<td class="p-2 text-right font-bold text-indigo-600 dark:text-indigo-400 font-mono">' + f(e.pctEmax, 1) + '%</td>' +
+    '</tr>';
+  }).join('');
+}
+
+function fillSelects() {
+  var opt = function (e, i) {
+    return '<option value="' + i + '">#' + (i + 1) + ' ' + (e.type === 'std' ? 'Std' : 'Test') + ' (' + e.vol + ' mL) → ' + f(e.mm, 1) + ' mm (' + f(e.pctEmax, 1) + '%)</option>';
+  };
+  var stds = events.map(function (e, i) { return e.type === 'std' ? opt(e, i) : ''; }).join('');
+  var tests = events.map(function (e, i) { return e.type === 'test' ? opt(e, i) : ''; }).join('');
+
+  ['stdSel', 'loSel', 'hiSel'].forEach(function (id) {
+    var s = $(id);
+    s.innerHTML = stds;
+    if (s.options.length) s.selectedIndex = s.options.length - 1;
+  });
+  $('testSel').innerHTML = tests;
+  if ($('testSel').options.length) $('testSel').selectedIndex = $('testSel').options.length - 1;
+
+  // Auto-bracket around the latest test dose
+  var t = null, lo = null, hi = null;
+  events.forEach(function (e) { if (e.type === 'test') t = e; });
+  if (t) {
+    events.forEach(function (e, i) {
+      if (e.type !== 'std') return;
+      if (e.mm <= t.mm && (lo === null || e.mm > events[lo].mm)) lo = i;
+      if (e.mm >= t.mm && (hi === null || e.mm < events[hi].mm)) hi = i;
+    });
+  }
+  if (lo !== null) $('loSel').value = String(lo);
+  if (hi !== null) $('hiSel').value = String(hi);
+}
+
+function flagRange(list) {
+  return list.some(function (e) { return e.mm < MINMM || e.mm >= MAXMM; })
+    ? '<br><span class="font-semibold">⚠ Warning:</span> a response is below 2.0 mm or at the 45 mm ceiling, outside the linear range, so the result may be inaccurate.'
+    : '';
+}
+
+// Method toggle
+function setMode(m) {
+  mode = m;
+  $('mMatch').className = m === 'match' ? 'active' : '';
+  $('mBr').className = m === 'br' ? 'active' : '';
+  $('stdBox').className = m === 'match' ? '' : 'hidden';
+  $('loBox').className = m === 'br' ? '' : 'hidden';
+  $('hiBox').className = m === 'br' ? '' : 'hidden';
+  say('out', ''); say('truth', '');
+  lastEstimate = null;
+}
+$('mMatch').onclick = function () { setMode('match'); };
+$('mBr').onclick = function () { setMode('br'); };
+
+$('calc').onclick = function () {
+  var t = events[parseInt($('testSel').value, 10)];
+  if (!t) { say('out', 'Add at least one test dose first.', 'warn'); return; }
+  var est, html;
+
+  if (mode === 'match') {
+    var s = events[parseInt($('stdSel').value, 10)];
+    if (!s) { say('out', 'Add a standard dose first.', 'warn'); return; }
+    est = (s.cs * s.vol) / t.vol;
+    var diff = Math.abs(s.mm - t.mm);
+    html = 'Unknown conc = (A<sub>s</sub> × V<sub>s</sub>) / V<sub>t</sub><br>= (' + f(s.cs) + ' × ' + f(s.vol) + ') / ' + f(t.vol) +
+      '<div class="res-val">' + f(est) + ' µg/mL</div>' + flagRange([s, t]);
+    if (diff > 1.0) {
+      html += '<br>Responses differ by ' + f(diff, 1) + ' mm. Matching works best when S and T give nearly equal heights.';
+    }
+    say('out', html, diff > 1.0 || flagRange([s, t]) ? 'warn' : 'ok');
+  } else {
+    var lo = events[parseInt($('loSel').value, 10)];
+    var hi = events[parseInt($('hiSel').value, 10)];
+    if (!lo || !hi) { say('out', 'Add at least two standard doses first.', 'warn'); return; }
+    if (hi.mm <= lo.mm) { say('out', 'Higher standard must give a larger response than the lower standard.', 'warn'); return; }
+    if (t.mm < lo.mm || t.mm > hi.mm) { say('out', 'Test response (' + f(t.mm, 1) + ' mm) must lie between S1 (' + f(lo.mm, 1) + ' mm) and S2 (' + f(hi.mm, 1) + ' mm).', 'warn'); return; }
+    var logDt = Math.log10(lo.doseUg) + ((t.mm - lo.mm) / (hi.mm - lo.mm)) * (Math.log10(hi.doseUg) - Math.log10(lo.doseUg));
+    var doseT = Math.pow(10, logDt);
+    est = doseT / t.vol;
+    html = 'Log(Dose<sub>t</sub>) = ' + f(logDt, 3) + ' → Dose<sub>t</sub> = ' + f(doseT) + ' µg<br>' +
+      'Conc = Dose<sub>t</sub> / V<sub>t</sub> = ' + f(doseT) + ' / ' + f(t.vol) +
+      '<div class="res-val">' + f(est) + ' µg/mL</div>' + flagRange([lo, hi, t]);
+    say('out', html, flagRange([lo, hi, t]) ? 'warn' : 'ok');
+  }
+  lastEstimate = est;
+};
+
+$('reveal').onclick = function () {
+  if (lastE
