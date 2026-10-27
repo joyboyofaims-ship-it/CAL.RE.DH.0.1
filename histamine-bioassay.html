@@ -404,4 +404,34 @@ $('calc').onclick = function () {
 };
 
 $('reveal').onclick = function () {
-  if (lastE
+  if (lastEstimate === null) { say('truth', 'Calculate the concentration first.', 'warn'); return; }
+  var err = Math.abs(lastEstimate - U) / U * 100;
+  say('truth', 'True unknown concentration: <b>' + f(U, 1) + ' µg/mL</b><br>Your estimate: ' + f(lastEstimate) +
+    ' µg/mL (error ' + f(err, 1) + '%)', err <= 10 ? 'ok' : 'warn');
+};
+
+$('addS').onclick = function () { addDose('std'); };
+$('addT').onclick = function () { addDose('test'); };
+$('undo').onclick = function () { events.pop(); render(true); };
+$('newU').onclick = function () { events = []; U = newUnknown(); say('msg', ''); render(false); };
+
+// Theme toggle
+function applyTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  $('themeIcon').textContent = t === 'dark' ? '☀️' : '🌙';
+  $('themeLabel').textContent = t === 'dark' ? 'Light' : 'Dark';
+  drawKymograph(false);
+}
+$('themeToggle').onclick = function () {
+  var cur = document.documentElement.getAttribute('data-theme');
+  applyTheme(cur === 'dark' ? 'light' : 'dark');
+};
+window.addEventListener('resize', function () { drawKymograph(false); });
+
+// Init
+applyTheme(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+setMode('match');
+render(false);
+</script>
+</body>
+</html>
