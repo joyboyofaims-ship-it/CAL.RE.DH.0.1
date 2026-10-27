@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Rabbit Eye Simulator</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0b6e4f">
+<script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js");
+}
+</script><style>
+:root{--bg:#f3f5f9;--card:#fff;--text:#0f172a;--tx:#0f172a;--muted:#5b6b82;--mut:#5b6b82;--line:#d9dfeb;--bd:#d9dfeb;--accent:#4338ca;--ac:#4338ca;--on-ac:#fff;--ok:#047857;--danger:#be123c;--bad:#be123c;--st:#e6ebf5;--lid:#475569;color-scheme:light dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0b1020;--card:#141b2e;--text:#e8ecf5;--tx:#e8ecf5;--muted:#94a3b8;--mut:#94a3b8;--line:#26304a;--bd:#26304a;--accent:#818cf8;--ac:#818cf8;--on-ac:#0b1020;--ok:#34d399;--danger:#fb7185;--bad:#fb7185;--st:#070b17;--lid:#334155} }
+:root[data-theme="dark"]{--bg:#0b1020;--card:#141b2e;--text:#e8ecf5;--tx:#e8ecf5;--muted:#94a3b8;--mut:#94a3b8;--line:#26304a;--bd:#26304a;--accent:#818cf8;--ac:#818cf8;--on-ac:#0b1020;--ok:#34d399;--danger:#fb7185;--bad:#fb7185;--st:#070b17;--lid:#334155}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+[hidden]{display:none!important}
+#rabbit *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+#rabbit{margin:0;background:var(--bg);color:var(--tx);font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+#rabbit .w{max-width:640px;margin:0 auto;padding:12px;display:flex;flex-direction:column;gap:10px}
+#rabbit h1{font-size:17px;margin:0}
+#rabbit h2{font-size:13px;margin:0 0 6px;text-transform:uppercase;letter-spacing:.05em;color:var(--mut)}
+#rabbit .card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:10px}
+#rabbit .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+#rabbit .tabs{display:flex;background:var(--bg);border:1px solid var(--bd);border-radius:10px;padding:3px;gap:3px}
+#rabbit .tabs button{border:0;background:none;color:var(--mut);padding:6px 12px;border-radius:8px;font-weight:600;font-size:13px}
+#rabbit .tabs button.on{background:var(--ac);color:#fff}
+#rabbit select,#rabbit .btn{font:inherit;border-radius:10px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);padding:9px 10px}
+#rabbit select{flex:1;min-width:0}
+#rabbit .btn{background:var(--ac);color:#fff;border-color:var(--ac);font-weight:600}
+#rabbit .btn.g{background:var(--bg);color:var(--tx);border-color:var(--bd)}
+#rabbit #msg{font-size:13px;min-height:38px}
+#rabbit #msg b{color:var(--ac)}
+#rabbit #stage{position:relative;background:var(--st);border-radius:12px;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
+#rabbit #stage svg{display:block;width:100%;height:auto}
+#rabbit .lab{position:absolute;top:6px;font-size:11px;font-weight:600;color:var(--mut)}
+#rabbit #ruler{position:absolute;width:34px;background:rgba(79,70,229,.18);border:1px solid var(--ac);border-radius:6px;cursor:grab;touch-action:none}
+#rabbit #ruler .hd{font-size:9px;text-align:center;color:var(--ac);font-weight:700;padding:2px 0;background:rgba(79,70,229,.25)}
+#rabbit #ruler .tk{position:absolute;left:0;font-size:9px;color:var(--tx);line-height:0}
+#rabbit #ruler .tk i{position:absolute;left:0;top:0;height:1px;background:var(--tx)}
+#rabbit #rb{position:relative}
+#rabbit #drop{position:absolute;left:72%;top:4%;font-size:22px;opacity:0;pointer-events:none}
+#rabbit #drop.go{animation:fall .8s ease-in forwards}
+@keyframes fall{0%{transform:translateY(-10px);opacity:0}30%{opacity:1}100%{transform:translateY(95px);opacity:0}}
+#rabbit .lid{opacity:0}
+#rabbit .lid.bl{animation:blink .3s ease-in-out 2}
+@keyframes blink{0%,100%{opacity:0}45%,55%{opacity:1}}
+#rabbit .tools{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+#rabbit .tool{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 2px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);border-radius:12px;font-size:11px;font-weight:600;touch-action:none;user-select:none;-webkit-user-select:none}
+#rabbit .tool .ic{font-size:22px;height:26px;display:flex;align-items:center}
+#rabbit .tool.on{border-color:var(--ac);background:rgba(79,70,229,.15)}
+#rabbit #ghost{position:fixed;left:0;top:0;z-index:50;pointer-events:none;font-size:34px;transform:translate(-50%,-50%);filter:drop-shadow(0 3px 4px rgba(0,0,0,.4))}
+#rabbit table{width:100%;border-collapse:collapse;font-size:12.5px}
+#rabbit th,#rabbit td{padding:7px 6px;text-align:left;border-bottom:1px solid var(--bd)}
+#rabbit th{color:var(--mut);font-weight:600}
+#rabbit .ok{color:var(--ok);font-weight:600}
+#rabbit .bad{color:var(--bad);font-weight:600}
+#rabbit .mu{color:var(--mut)}
+#rabbit .opts{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:8px 0}
+#rabbit .opts button{text-align:left;padding:10px;border-radius:10px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);font:inherit;font-weight:600;font-size:13px}
+#rabbit #fb{padding:9px;border-radius:10px;font-size:13px;margin-top:4px}
+#rabbit details{border-bottom:1px solid var(--bd);padding:8px 0}
+#rabbit details:last-child{border:0}
+#rabbit summary{font-weight:600;cursor:pointer}
+#rabbit details p{margin:6px 0 0;color:var(--mut)}
+#rabbit{padding:14px 14px 96px;min-height:0;background:var(--bg);color:var(--text)}
+#tabs{position:fixed;left:0;right:0;bottom:0;display:flex;gap:6px;padding:8px 12px calc(8px + env(safe-area-inset-bottom,0px));background:var(--card);border-top:1px solid var(--line);z-index:40;overflow-x:auto;-webkit-overflow-scrolling:touch}
+#tabs button, #tabs a{flex:1 0 auto;border:0;border-radius:12px;padding:11px 10px;font:600 13px system-ui,sans-serif;background:transparent;color:var(--muted);white-space:nowrap;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box}
+#tabs button[aria-selected="true"]{background:var(--accent);color:var(--on-ac)}
+#tabs button:focus-visible, #tabs a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+#err{position:fixed;top:0;left:0;right:0;z-index:99;background:#be123c;color:#fff;padding:10px;font-size:13px}
+</style></head><body>
+<div id="err" hidden></div>
+<script>window.onerror=function(m,u,l){var e=document.getElementById("err");e.hidden=false;e.textContent="Script error: "+m+" (line "+l+")"};</script>
+<section id="rabbit">
+<div class="w">
+<div class="row" style="justify-content:space-between">
+<h1>🐇 Rabbit Eye Simulator</h1>
+<div class="tabs"><button id="tp" class="on" onclick="mode('p')">Practice</button><button id="te" onclick="mode('e')">Exam</button></div>
+</div>
+
+<div class="card" id="cp">
+<div class="row"><select id="sel"></select><button class="btn" onclick="instill()">💧 Instill</button></div>
+</div>
+<div class="card row" id="ce" hidden style="justify-content:space-between">
+<span><b id="smp">Unknown sample</b><br><span class="mu">Test it, then answer below.</span></span>
+<button class="btn" onclick="newExam()">New unknown</button>
+</div>
+
+<div class="card" id="msg">Drag a tool onto an eye. Left eye = saline control, right eye = test eye.</div>
+
+<div class="card">
+<div id="stage">
+<span class="lab" style="left:8px">LEFT · Control</span><span class="lab" style="right:8px">RIGHT · Test</span>
+<svg viewBox="0 0 600 300" id="svg">
+<defs><radialGradient id="ig"><stop offset="0" stop-color="#b45309"/><stop offset=".7" stop-color="#78350f"/><stop offset="1" stop-color="#451a03"/></radialGradient>
+<radialGradient id="gl"><stop offset="0" stop-color="#fde047" stop-opacity=".75"/><stop offset="1" stop-color="#fde047" stop-opacity="0"/></radialGradient></defs>
+<g id="eL"><ellipse cx="150" cy="160" rx="120" ry="100" fill="#f8fafc" stroke="#cbd5e1" stroke-width="3"/><circle cx="150" cy="160" r="72" fill="url(#ig)"/><circle id="pL" cx="150" cy="160" r="22.5" fill="#020617"/><circle cx="132" cy="140" r="7" fill="#fff" opacity=".8"/><circle id="gL" cx="150" cy="160" r="120" fill="url(#gl)" opacity="0"/><ellipse id="lL" class="lid" cx="150" cy="160" rx="121" ry="101" fill="var(--lid)"/></g>
+<g id="eR"><ellipse cx="450" cy="160" rx="120" ry="100" fill="#f8fafc" stroke="#cbd5e1" stroke-width="3"/><circle cx="450" cy="160" r="72" fill="url(#ig)"/><circle id="pR" cx="450" cy="160" r="22.5" fill="#020617"/><circle cx="432" cy="140" r="7" fill="#fff" opacity=".8"/><circle id="gR" cx="450" cy="160" r="120" fill="url(#gl)" opacity="0"/><ellipse id="lR" class="lid" cx="450" cy="160" rx="121" ry="101" fill="var(--lid)"/></g>
+</svg>
+<div id="drop">💧</div>
+<div id="ruler" hidden><div class="hd">mm</div><div id="rb"></div></div>
+</div>
+<div class="tools" style="margin-top:8px">
+<button class="tool" data-tool="torch"><span class="ic">🔦</span>Light</button>
+<button class="tool" data-tool="cotton"><span class="ic"><svg width="30" height="26" viewBox="0 0 30 26"><line x1="4" y1="22" x2="20" y2="8" stroke="#a16207" stroke-width="3" stroke-linecap="round"/><circle cx="22" cy="6" r="5" fill="#fff" stroke="#94a3b8"/></svg></span>Cotton</button>
+<button class="tool" data-tool="iop"><span class="ic">⏲️</span>IOP</button>
+<button class="tool" id="rbtn" onclick="togRuler()"><span class="ic">📏</span>Scale</button>
+</div>
+<div class="row" style="margin-top:8px;justify-content:flex-end"><button class="btn g" onclick="reset()">↺ Reset</button></div>
+</div>
+
+<div class="card">
+<h2>Observations</h2>
+<table><thead><tr><th>Parameter</th><th>Left (control)</th><th>Right (test)</th></tr></thead><tbody>
+<tr><td>Pupil (mm)</td><td id="L0" class="mu">—</td><td id="R0" class="mu">—</td></tr>
+<tr><td>Light reflex</td><td id="L1" class="mu">—</td><td id="R1" class="mu">—</td></tr>
+<tr><td>Corneal reflex</td><td id="L2" class="mu">—</td><td id="R2" class="mu">—</td></tr>
+<tr><td>IOP</td><td id="L3" class="mu">—</td><td id="R3" class="mu">—</td></tr>
+</tbody></table>
+<p class="mu" style="margin:6px 0 0;font-size:12px">Drop the Scale beside a pupil to read its diameter. It is calibrated to the eye size.</p>
+</div>
+
+<div class="card" id="quiz" hidden>
+<h2>Identify the unknown drug</h2>
+<div class="opts" id="opts"></div>
+<div id="fb" hidden></div>
+</div>
+
+<div class="card">
+<h2>Quick viva questions</h2>
+<details><summary>1. Why is one eye used as a control?</summary><p>To compare against the test eye and rule out effects of handling or drops. Saline is inert.</p></details>
+<details><summary>2. Atropine: pupil and light reflex?</summary><p>Mydriasis, light reflex absent. It blocks muscarinic receptors, so the sphincter pupillae is paralysed.</p></details>
+<details><summary>3. How do you tell ephedrine from atropine?</summary><p>Ephedrine gives mydriasis with light reflex present. Atropine abolishes the reflex.</p></details>
+<details><summary>4. Mechanism of ephedrine mydriasis?</summary><p>Mainly indirect: releases noradrenaline, which acts on α1 receptors to contract the radial dilator.</p></details>
+<details><summary>5. Physostigmine effect on the eye?</summary><p>Miosis and lower IOP. It inhibits cholinesterase, so acetylcholine builds up and contracts the sphincter and ciliary muscle.</p></details>
+<details><summary>6. Lignocaine effect, and why?</summary><p>Corneal reflex lost. It blocks Na⁺ channels in corneal sensory nerves. The pupil is unchanged.</p></details>
+<details><summary>7. Nerves of the light reflex?</summary><p>Afferent: optic nerve (II). Efferent: oculomotor nerve (III), parasympathetic.</p></details>
+<details><summary>8. Nerves of the corneal reflex?</summary><p>Afferent: trigeminal (V1). Efferent: facial (VII), which closes the lid.</p></details>
+<details><summary>9. Which mydriatic is dangerous in narrow-angle glaucoma?</summary><p>Atropine and other mydriatics. A dilated pupil crowds the angle and blocks aqueous outflow.</p></details>
+<details><summary>10. What is cycloplegia?</summary><p>Paralysis of accommodation from ciliary muscle block. Atropine causes it and lasts about 7 to 10 days.</p></details>
+<details><summary>11. Adrenaline effect on IOP?</summary><p>Lowers it by reducing aqueous production and increasing uveoscleral outflow. It also dilates the pupil.</p></details>
+<details><summary>12. Uses of physostigmine (miotic) in the eye?</summary><p>Open-angle glaucoma, and reversing the effect of mydriatics.</p></details>
+</div>
+</div>
+<div id="ghost" hidden></div>
+
+</section>
+<nav id="tabs" aria-label="Menu">
+  <a class="btn" href="index.html">← Menu</a>
+</nav>
+<script>(function(){
+
+const D={
+saline:{n:'Normal saline 0.9%',mm:4.5,lr:1,cr:1,iop:'Normal (~15)',m:'Inert control.'},
+physostigmine:{n:'Physostigmine 0.5%',mm:2,lr:1,cr:1,iop:'Decreased (~10)',m:'Cholinesterase inhibitor: ACh builds up, sphincter contracts (miosis), outflow improves.'},
+atropine:{n:'Atropine 1%',mm:8,lr:0,cr:1,iop:'Increased (~22)',m:'Muscarinic blocker: sphincter paralysed, mydriasis, no light reflex.'},
+ephedrine:{n:'Ephedrine 0.5%',mm:6.5,lr:1,cr:1,iop:'Normal / slight rise (~16)',m:'Indirect α1 action on radial muscle: mydriasis, light reflex kept.'},
+adrenaline:{n:'Adrenaline 0.1%',mm:6,lr:1,cr:1,iop:'Decreased (~11)',m:'Direct α agonist: mydriasis, light reflex kept, IOP falls.'},
+lignocaine:{n:'Lignocaine 1%',mm:4.5,lr:1,cr:0,iop:'Normal (~15)',m:'Na⁺ channel block in corneal nerves: corneal reflex lost, pupil normal.'}
+};
+const $=id=>document.getElementById(id);
+let right='saline',md='p',unk=null;
+const cur={L:22.5,R:22.5},tw={L:0,R:0};
+const sel=$('sel');
+Object.keys(D).forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=D[k].n;sel.appendChild(o)});
+function drug(k){return D[k==='L'?'saline':right]}
+function tween(k,to,ms){ms=ms||500;const id=++tw[k],from=cur[k],t0=performance.now(),el=$('p'+k);
+(function f(t){if(id!==tw[k])return;const p=Math.min(1,(t-t0)/ms);cur[k]=from+(to-from)*p;el.setAttribute('r',cur[k].toFixed(2));if(p<1)requestAnimationFrame(f)})(t0)}
+function base(k){return drug(k).mm*5}
+function say(h){$('msg').innerHTML=h}
+function rec(k,row,txt,cls){const e=$(k+row);e.textContent=txt;e.className=cls||''}
+function clearTable(k){['0','1','2','3'].forEach(r=>rec(k,r,'—','mu'))}
+function clearAll(){clearTable('L');clearTable('R')}
+
+function instill(){
+ if(md==='p')right=sel.value;
+ const d=$('drop');d.classList.remove('go');void d.offsetWidth;d.classList.add('go');
+ clearTable('R');
+ setTimeout(()=>{tween('R',base('R'),900);say(md==='e'?'Drops instilled in the right eye. Test it now.':'<b>'+D[right].n+'</b> instilled in the right eye. Test it now.')},700);
+}
+function mode(m){
+ md=m;$('tp').className=m==='p'?'on':'';$('te').className=m==='e'?'on':'';
+ $('cp').hidden=m==='e';$('ce').hidden=m==='p';$('quiz').hidden=m==='p';
+ if(m==='p'){reset()}else{newExam()}
+}
+function newExam(){
+ const ks=['physostigmine','atropine','ephedrine','adrenaline','lignocaine'];
+ unk=ks[Math.floor(Math.random()*ks.length)];right=unk;
+ $('smp').textContent='Unknown sample #'+(100+Math.floor(Math.random()*899));
+ $('fb').hidden=true;clearAll();tween('L',22.5);tween('R',base('R'),900);
+ say('Unknown drug instilled in the right eye. Use the tools to identify it.');
+ buildOpts();
+}
+function buildOpts(){
+ const o=$('opts');o.innerHTML='';
+ ['physostigmine','atropine','ephedrine','adrenaline','lignocaine'].forEach((k,i)=>{
+  const b=document.createElement('button');b.textContent=String.fromCharCode(65+i)+'. '+D[k].n;b.onclick=()=>answer(k);o.appendChild(b)});
+}
+function answer(k){
+ const f=$('fb'),ok=k===unk;f.hidden=false;
+ f.style.background=ok?'rgba(5,150,105,.15)':'rgba(225,29,72,.15)';
+ f.innerHTML=(ok?'<b class="ok">Correct!</b> ':'<b class="bad">Not quite.</b> It was ')+'<b>'+D[unk].n+'</b>. '+D[unk].m;
+}
+function reset(){
+ if(md==='p'){right='saline';sel.value='saline'}
+ clearAll();tween('L',22.5);tween('R',base('R'));
+ say('Drag a tool onto an eye. Left eye = saline control, right eye = test eye.');
+}
+
+/* eyes + tools */
+const IC={torch:'🔦',iop:'⏲️',cotton:'<svg width="44" height="40" viewBox="0 0 30 26"><line x1="4" y1="22" x2="20" y2="8" stroke="#a16207" stroke-width="3" stroke-linecap="round"/><circle cx="22" cy="6" r="5" fill="#fff" stroke="#94a3b8"/></svg>'};
+const gh=$('ghost');let dr=null;
+function eyeAt(x,y){
+ for(const k of ['L','R']){const r=$('e'+k).getBoundingClientRect();
+  const cx=(r.left+r.right)/2,cy=(r.top+r.bottom)/2,a=r.width/2,b=r.height/2;
+  if(((x-cx)/a)**2+((y-cy)/b)**2<=1)return k}
+ return null}
+function enter(t,k){
+ const d=drug(k),s=k==='L'?'Left (control)':'Right (test)';
+ if(t==='torch'){$('g'+k).setAttribute('opacity',1);
+  if(d.lr){tween(k,Math.max(8,base(k)-14),250);rec(k,1,'Present (+)','ok');say('<b>Light reflex, '+s+':</b> pupil constricts. Present (+)')}
+  else{rec(k,1,'Absent (−)','bad');say('<b>Light reflex, '+s+':</b> no response. Absent (−)')}}
+ if(t==='cotton'){
+  if(d.cr){const l=$('l'+k);l.classList.remove('bl');void l.getBoundingClientRect();l.classList.add('bl');rec(k,2,'Present (+)','ok');say('<b>Corneal reflex, '+s+':</b> eye blinks. Present (+)')}
+  else{rec(k,2,'Absent (−)','bad');say('<b>Corneal reflex, '+s+':</b> no blink. Absent (−)')}}
+ if(t==='iop'){rec(k,3,d.iop);say('<b>IOP, '+s+':</b> '+d.iop+' mmHg')}
+}
+function leave(t,k){if(t==='torch'){$('g'+k).setAttribute('opacity',0);tween(k,base(k),400)}}
+function mv(e){
+ gh.style.left=e.clientX+'px';gh.style.top=(e.clientY-26)+'px';
+ const k=eyeAt(e.clientX,e.clientY);
+ if(k!==dr.over){if(dr.over)leave(dr.t,dr.over);dr.over=k;if(k)enter(dr.t,k)}
+}
+function up(){
+ if(dr&&dr.over)leave(dr.t,dr.over);
+ dr=null;gh.hidden=true;
+ window.removeEventListener('pointermove',mv);window.removeEventListener('pointerup',up);window.removeEventListener('pointercancel',up);
+}
+document.querySelectorAll('[data-tool]').forEach(b=>b.addEventListener('pointerdown',e=>{
+ e.preventDefault();dr={t:b.dataset.tool,over:null};gh.innerHTML=IC[dr.t];gh.hidden=false;mv(e);
+ window.addEventListener('pointermove',mv);window.addEventListener('pointerup',up);window.addEventListener('pointercancel',up);
+}));
+
+/* vertical calibrated ruler: 10 SVG units = 1 mm */
+const ru=$('ruler'),st=$('stage');
+function ppm(){return 10*st.getBoundingClientRect().width/600}
+function buildRuler(){
+ const p=ppm(),rb=$('rb');rb.innerHTML='';rb.style.height=(11*p)+'px';
+ for(let i=0;i<=10;i++){const t=document.createElement('div');t.className='tk';t.style.top=(i*p)+'px';
+  t.innerHTML='<i style="width:'+(i%2?10:18)+'px"></i>'+(i%2?'':'<span style="position:absolute;left:21px;top:-5px;line-height:1">'+i+'</span>');rb.appendChild(t)}
+}
+function togRuler(){
+ ru.hidden=!ru.hidden;$('rbtn').classList.toggle('on',!ru.hidden);
+ if(!ru.hidden){buildRuler();const w=st.getBoundingClientRect().width;ru.style.left=(w/2-17)+'px';ru.style.top='6px';
+  say('Drag the scale next to a pupil, and release to read its diameter (0 mm at the top tick).')}
+}
+window.addEventListener('resize',()=>{if(!ru.hidden)buildRuler()});
+let rd=null;
+ru.addEventListener('pointerdown',e=>{e.preventDefault();ru.setPointerCapture(e.pointerId);rd={x:e.clientX-ru.offsetLeft,y:e.clientY-ru.offsetTop}});
+ru.addEventListener('pointermove',e=>{if(!rd)return;const s=st.getBoundingClientRect();
+ ru.style.left=Math.min(s.width-ru.offsetWidth,Math.max(0,e.clientX-rd.x))+'px';
+ ru.style.top=Math.min(s.height-ru.offsetHeight,Math.max(0,e.clientY-rd.y))+'px'});
+ru.addEventListener('pointerup',()=>{
+ rd=null;const r=ru.getBoundingClientRect(),cx=(r.left+r.right)/2;
+ for(const k of ['L','R']){const e=$('e'+k).getBoundingClientRect();
+  if(cx>e.left&&cx<e.right){const mm=drug(k).mm;rec(k,0,mm+' mm');say('<b>Pupil, '+(k==='L'?'left (control)':'right (test)')+':</b> '+mm+' mm'+(mm<3?' (miosis)':mm>5.5?' (mydriasis)':' (normal)'))}}
+});
+tween('R',22.5,1);
+
+Object.assign(window,{mode:mode,instill:instill,newExam:newExam,togRuler:togRuler,reset:reset});window.ra
