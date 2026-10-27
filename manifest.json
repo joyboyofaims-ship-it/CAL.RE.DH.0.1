@@ -1,6 +1,7 @@
 {
   "name": "pharmacology CAL joyboy",
   "short_name": "P.CAL 67",
+  "description": "Pharmacology computer-assisted learning simulators",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
@@ -8,7 +9,13 @@
   "theme_color": "#0b6e4f",
   "icons": [
     {
-      "src": "icon.png",
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
