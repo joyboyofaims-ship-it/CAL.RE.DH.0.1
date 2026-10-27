@@ -1,4 +1,4 @@
-const CACHE = "pcal-v2";
+const CACHE = "pcal-v3";
 
 const FILES = [
   "./",
@@ -9,7 +9,8 @@ const FILES = [
   "frog_oesophagus_CAL.html",
   "histamine-bioassay.html",
   "manifest.json",
-  "icon.png"
+  "icon-192.png",
+  "icon-512.png"
 ];
 
 self.addEventListener("install", (e) => {
