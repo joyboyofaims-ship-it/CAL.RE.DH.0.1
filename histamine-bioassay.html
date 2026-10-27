@@ -31,6 +31,20 @@ canvas{display:block}
 .res-val{font-size:20px;font-weight:700;margin:4px 0}
 .badge-std{background:var(--std-bg);color:var(--std);border:1px solid var(--std)}
 .badge-test{background:var(--test-bg);color:var(--test);border:1px solid var(--test)}
+
+.qa{border:1px solid var(--line);border-radius:10px;margin-bottom:8px;background:var(--card)}
+.qa summary{cursor:pointer;padding:10px 12px;font-weight:600;font-size:14px;list-style:none}
+.qa summary::-webkit-details-marker{display:none}
+.qa summary::before{content:"▸ ";color:var(--acc)}
+.qa[open] summary::before{content:"▾ "}
+.qa .ans{padding:0 12px 12px;font-size:13px;line-height:1.55}
+.qa .ans ul{margin:6px 0 6px 18px;padding:0;list-style:disc}
+.qa .ans li{margin-bottom:3px}
+.qa .key{background:var(--okbg);color:var(--ok);border-radius:8px;padding:8px 10px;margin:8px 0;font-weight:600}
+.qa .fun{background:var(--test-bg);color:var(--test);border-radius:8px;padding:8px 10px;margin-top:8px}
+.qa table{width:100%;border-collapse:collapse;font-size:12px;margin:6px 0}
+.qa th,.qa td{border:1px solid var(--line);padding:4px 6px;text-align:left;vertical-align:top}
+.qa th{background:var(--std-bg)}
 </style>
 </head>
 <body class="p-3 sm:p-6 min-h-screen">
@@ -149,6 +163,83 @@ canvas{display:block}
       <p><b>Valid Range:</b> Responses below 2.0 mm (&lt;4.4% Emax) or at the 45 mm ceiling (100% Emax) are outside the linear range and flagged as inaccurate.</p>
     </div>
   </details>
+
+  <div class="card-box">
+    <h2 class="text-sm font-semibold mb-1 text-slate-700 dark:text-slate-200 uppercase tracking-wider">Viva Questions &amp; Model Answers</h2>
+    <p class="text-xs mb-3" style="color:var(--mute)">Tap a question to open the answer. Written to match standard pharmacology textbook content (KDT).</p>
+
+    <details class="qa"><summary>1. Why is guinea-pig ileum preferred for histamine bioassay?</summary><div class="ans">
+      <div class="key">Because it is the most sensitive, stable and reproducible smooth-muscle preparation for histamine.</div>
+      <ul>
+        <li><b>Very high sensitivity:</b> it is rich in H<sub>1</sub> receptors and contracts to histamine in the nanogram range, so even a tiny amount in a sample can be measured.</li>
+        <li><b>Graded, log-linear response:</b> the dose-response curve is straight over a useful middle range on a log-dose scale, which makes matching and bracketing easy and accurate.</li>
+        <li><b>Stable baseline:</b> little spontaneous activity, and the tissue stays alive for hours in aerated Tyrode solution at 37 &deg;C.</li>
+        <li><b>Response can be proved to be histamine:</b> an H<sub>1</sub> blocker (mepyramine) abolishes it, and atropine in the bath removes any interference from acetylcholine in the sample.</li>
+        <li><b>Practical:</b> cheap, easy to mount, and gives reproducible contractions on repeated doses (with a regular washout interval).</li>
+      </ul>
+      <div class="fun">Fun fact: the guinea pig is famously histamine-sensitive. In guinea pigs, anaphylaxis kills mainly by severe bronchospasm, which is why they are also a classic allergy model.</div>
+    </div></details>
+
+    <details class="qa"><summary>2. How would a competitive antagonist affect the dose-response curve of histamine?</summary><div class="ans">
+      <div class="key">Parallel rightward shift of the curve, with the same maximum (Emax).</div>
+      <ul>
+        <li>An H<sub>1</sub> antagonist such as mepyramine or chlorpheniramine competes with histamine for the same receptor sites.</li>
+        <li>The curve shifts to the <b>right</b> and stays parallel, because more histamine is needed to get the same response (EC<sub>50</sub> rises, potency of histamine falls).</li>
+        <li><b>Emax is unchanged:</b> the block is <i>surmountable</i>. A large enough dose of histamine overcomes the antagonist.</li>
+        <li>The size of the shift is the <b>dose ratio</b>. The antagonist's potency is expressed as its <b>pA<sub>2</sub></b>: the negative log of the molar concentration of antagonist that makes you double the agonist dose to get the same effect.</li>
+      </ul>
+      <table><tr><th></th><th>Competitive</th><th>Non-competitive</th></tr>
+      <tr><td>Curve</td><td>Parallel shift to the right</td><td>Flattened, lower maximum</td></tr>
+      <tr><td>Emax</td><td>Unchanged</td><td>Reduced</td></tr>
+      <tr><td>Overcome by more agonist?</td><td>Yes</td><td>No</td></tr></table>
+    </div></details>
+
+    <details class="qa"><summary>3. Why is Tyrode's solution used? What is its physiological importance?</summary><div class="ans">
+      <div class="key">It copies the ionic make-up of extracellular fluid, so the isolated gut stays alive and contracts normally outside the body.</div>
+      <ul>
+        <li><b>NaCl:</b> keeps the fluid isotonic (correct osmotic balance) and supplies Na<sup>+</sup>.</li>
+        <li><b>KCl:</b> sets the resting membrane potential and excitability of the muscle.</li>
+        <li><b>CaCl<sub>2</sub>:</b> essential for excitation&ndash;contraction coupling. Without Ca<sup>2+</sup> smooth muscle will not contract to histamine.</li>
+        <li><b>MgCl<sub>2</sub> and NaH<sub>2</sub>PO<sub>4</sub>:</b> support membrane stability and help buffering.</li>
+        <li><b>NaHCO<sub>3</sub>:</b> bicarbonate buffer to hold the pH near 7.4.</li>
+        <li><b>Glucose:</b> energy source for the tissue.</li>
+      </ul>
+      <p>It is kept at <b>37 &deg;C</b> and bubbled with air or oxygen so the tissue gets oxygen for ATP and stays at body conditions.</p>
+      <div class="fun">Remember: <b>Ringer</b> is the classic solution for frog (amphibian) tissue, while <b>Tyrode</b> or Krebs is used for mammalian tissue such as guinea-pig ileum.</div>
+    </div></details>
+
+    <details class="qa"><summary>4. What are the physiological effects of histamine in the human body?</summary><div class="ans">
+      <div class="key">Histamine acts through four receptor types (H<sub>1</sub> to H<sub>4</sub>). Think: vessels, smooth muscle, stomach, heart, brain.</div>
+      <table>
+        <tr><th>Receptor</th><th>Main effects</th></tr>
+        <tr><td>H<sub>1</sub></td><td>Contracts bronchial and intestinal smooth muscle (bronchospasm, colic). Dilates small vessels through endothelial NO and raises capillary permeability (fall in BP, oedema, wheal). Stimulates sensory nerve endings (itch, pain). Promotes wakefulness in the brain.</td></tr>
+        <tr><td>H<sub>2</sub></td><td><b>Gastric acid secretion</b> from parietal cells (its most important physiological role). Cardiac stimulation: increased rate and force. Slower, sustained vasodilation.</td></tr>
+        <tr><td>H<sub>3</sub></td><td>Presynaptic autoreceptor, mainly in the brain: reduces release of histamine and other transmitters.</td></tr>
+        <tr><td>H<sub>4</sub></td><td>On immune cells (eosinophils, mast cells): chemotaxis and a role in inflammation and itch.</td></tr>
+      </table>
+      <ul>
+        <li><b>Triple response of Lewis</b> (intradermal histamine): red spot (capillary dilation), flare (axon-reflex arteriolar dilation) and wheal (increased permeability).</li>
+        <li><b>Brain:</b> a neurotransmitter for wakefulness, appetite control and the vestibular system. This is why first-generation antihistamines cause drowsiness.</li>
+        <li>Large doses also release adrenaline from the adrenal medulla.</li>
+        <li>Stored mainly in <b>mast cells and basophils</b>, in gastric ECL cells and in neurons.</li>
+      </ul>
+      <div class="fun">The name comes from the Greek <i>histos</i> (tissue). Dale and Laidlaw described its powerful actions in 1910, and it was later isolated from liver and lung tissue.</div>
+    </div></details>
+
+    <details class="qa"><summary>5. Name clinical conditions where histamine plays a major role.</summary><div class="ans">
+      <div class="key">Hives, nose, wheeze, acid and flush: allergy and stomach acid are the big two.</div>
+      <ul>
+        <li><b>Allergic conditions:</b> urticaria, allergic rhinitis (hay fever), angioedema, allergic conjunctivitis, pruritus, reactions to insect stings. Treated with H<sub>1</sub> antihistamines.</li>
+        <li><b>Anaphylactic shock</b> (type I hypersensitivity): mast-cell degranulation causes sudden vasodilation, hypotension and bronchospasm. Adrenaline is the life-saving drug (it is the physiological antagonist).</li>
+        <li><b>Bronchial asthma:</b> histamine contributes to bronchoconstriction, but H<sub>1</sub> blockers are only of limited use because other mediators matter more.</li>
+        <li><b>Peptic ulcer, GERD and Zollinger&ndash;Ellison syndrome:</b> excess acid, treated with H<sub>2</sub> blockers (for example famotidine, cimetidine).</li>
+        <li><b>Systemic mastocytosis and some carcinoid or gastric tumours:</b> excess histamine causes flushing, itching and diarrhoea.</li>
+        <li><b>Scombroid fish poisoning:</b> spoiled tuna or mackerel contains a lot of histamine, causing flushing, headache and rash soon after eating.</li>
+        <li><b>Drug-induced histamine release:</b> morphine, d-tubocurarine and vancomycin (red man syndrome) can cause flushing and hypotension without a true allergy.</li>
+        <li><b>Motion sickness and vertigo:</b> H<sub>1</sub> antagonists such as promethazine and cinnarizine help.</li>
+      </ul>
+    </div></details>
+  </div>
 </div>
 
 <script>
