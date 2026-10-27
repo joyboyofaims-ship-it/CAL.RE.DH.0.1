@@ -88,23 +88,25 @@ var F=[
 ["🌸","Foxglove is a pretty flower and the source of digoxin","The dose that helps the heart and the dose that harms it are very close."],
 ["🤧","One chemical, two jobs","Histamine runs your nose through H1 receptors and drives stomach acid through H2. That’s why cimetidine works for ulcers."]
 ];
-var $=function(i){return document.getElementById(i)},sp=$("splash"),last=-1,timer,ms=3500;
-function show(t){
-  ms=t||3500;clearTimeout(timer);
+var $=function(i){return document.getElementById(i)},sp=$("splash"),last=-1,timer,pending=null;
+function readMs(t){var w=t.split(/\s+/).length;return Math.max(7000,3000+w*350)}
+function show(){
+  clearTimeout(timer);
   var i;do{i=Math.floor(Math.random()*F.length)}while(i===last);last=i;
+  var ms=readMs(F[i][1]+" "+F[i][2]);
   $("emo").textContent=F[i][0];$("ft").textContent=F[i][1];$("fb").textContent=F[i][2];
   var b=$("bar");b.style.animation="none";void b.offsetWidth;b.style.animation="drain "+ms+"ms linear forwards";
   var c=sp.querySelector(".card");c.style.animation="none";void c.offsetWidth;c.style.animation="";
-  sp.classList.remove("hide");timer=setTimeout(hide,ms);
+  sp.classList.remove("hide");timer=setTimeout(done,ms);
 }
-function hide(){clearTimeout(timer);sp.classList.add("hide")}
+function done(){clearTimeout(timer);if(pending){var u=pending;pending=null;location.href=u}else sp.classList.add("hide")}
 show();
-$("nx").addEventListener("click",function(){show(6000)});
-$("sk").addEventListener("click",hide);
+$("nx").addEventListener("click",show);
+$("sk").addEventListener("click",done);
 document.querySelectorAll("nav a").forEach(function(a){
-  a.addEventListener("click",function(){show(8000)});
+  a.addEventListener("click",function(e){e.preventDefault();pending=a.href;show()});
 });
-window.addEventListener("pageshow",function(e){if(e.persisted)hide()});
+window.addEventListener("pageshow",function(e){if(e.persisted){pending=null;clearTimeout(timer);sp.classList.add("hide")}});
 })();
 </script>
 </body></html>
