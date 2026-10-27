@@ -87,11 +87,17 @@ body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 system-ui,-a
 #rabbit #msg b{color:var(--ac)}
 #rabbit #stage{position:relative;background:var(--st);border-radius:12px;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
 #rabbit #stage svg{display:block;width:100%;height:auto}
-#rabbit .lab{position:absolute;top:6px;font-size:11px;font-weight:600;color:var(--mut)}
-#rabbit #ruler{position:absolute;width:34px;background:rgba(79,70,229,.18);border:1px solid var(--ac);border-radius:6px;cursor:grab;touch-action:none}
-#rabbit #ruler .hd{font-size:9px;text-align:center;color:var(--ac);font-weight:700;padding:2px 0;background:rgba(79,70,229,.25)}
-#rabbit #ruler .tk{position:absolute;left:0;font-size:9px;color:var(--tx);line-height:0}
-#rabbit #ruler .tk i{position:absolute;left:0;top:0;height:1px;background:var(--tx)}
+#rabbit .lab{position:absolute;top:6px;z-index:2;font-size:11px;font-weight:700;color:#fff;background:rgba(0,0,0,.5);padding:2px 9px;border-radius:999px}
+#rabbit #ruler{position:absolute;width:42px;background:linear-gradient(90deg,rgba(214,228,244,.9),rgba(255,255,255,.74) 45%,rgba(196,213,235,.9));border:1px solid rgba(255,255,255,.95);border-radius:5px 5px 8px 8px;box-shadow:0 8px 16px rgba(0,0,0,.5),inset 0 0 0 1px rgba(15,23,42,.22);cursor:grab;touch-action:none;z-index:3;color:#0f172a}
+#rabbit #ruler:active{cursor:grabbing}
+#rabbit #ruler .hd{font-size:9px;text-align:center;color:#fff;font-weight:800;letter-spacing:.08em;padding:3px 0;background:linear-gradient(#52627a,#1e293b);border-radius:4px 4px 0 0}
+#rabbit #ruler .tk{position:absolute;left:0;font-size:9px;line-height:0;color:#0f172a}
+#rabbit #ruler .tk i{position:absolute;left:0;top:0;height:1px;background:#0f172a}
+#rabbit #rdo{position:absolute;z-index:4;pointer-events:none;background:#0f172a;color:#fff;font-size:12px;font-weight:800;padding:3px 9px;border-radius:999px;border:1px solid #38bdf8;box-shadow:0 3px 8px rgba(0,0,0,.4)}
+#rabbit .tap{transform-box:fill-box;transform-origin:center;opacity:0}
+#rabbit .tap.go{animation:tap .9s ease-out}
+@keyframes tap{0%{transform:scale(.15);opacity:.95}100%{transform:scale(1.25);opacity:0}}
+#rabbit #tono small{font-size:12px;font-weight:700}
 #rabbit #rb{position:relative}
 #rabbit #drop{position:absolute;left:72%;top:4%;font-size:22px;opacity:0;pointer-events:none}
 #rabbit #drop.go{animation:fall .8s ease-in forwards}
@@ -137,39 +143,36 @@ body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 system-ui,-a
 </div>
 
 <div class="card" id="cp">
-<div class="row"><select id="sel"></select><button class="btn" onclick="instill()">💧 Instill</button></div>
+<div class="row"><select id="eyeSel"><option value="R">Right eye</option><option value="L">Left eye</option></select><select id="sel"></select></div><div class="row" style="margin-top:8px"><button class="btn" style="flex:1" onclick="instill()">💧 Instill in chosen eye</button></div>
 </div>
 <div class="card row" id="ce" hidden style="justify-content:space-between">
 <span><b id="smp">Unknown sample</b><br><span class="mu">Test it, then answer below.</span></span>
 <button class="btn" onclick="newExam()">New unknown</button>
 </div>
 
-<div class="card" id="msg">Drag a tool onto an eye. Left eye = saline control, right eye = test eye.</div>
+<div class="card" id="msg">Both eyes start with saline. Pick an eye and a drug, instill, then drag a tool onto an eye.</div>
 
 <div class="card">
 <div id="stage">
-<span class="lab" style="left:8px">LEFT · Control</span><span class="lab" style="right:8px">RIGHT · Test</span>
-<svg viewBox="0 0 600 300" id="svg">
-<defs><radialGradient id="ig"><stop offset="0" stop-color="#b45309"/><stop offset=".7" stop-color="#78350f"/><stop offset="1" stop-color="#451a03"/></radialGradient>
-<radialGradient id="gl"><stop offset="0" stop-color="#fde047" stop-opacity=".75"/><stop offset="1" stop-color="#fde047" stop-opacity="0"/></radialGradient></defs>
-<g id="eL"><ellipse cx="150" cy="160" rx="120" ry="100" fill="#f8fafc" stroke="#cbd5e1" stroke-width="3"/><circle cx="150" cy="160" r="72" fill="url(#ig)"/><circle id="pL" cx="150" cy="160" r="22.5" fill="#020617"/><circle cx="132" cy="140" r="7" fill="#fff" opacity=".8"/><circle id="gL" cx="150" cy="160" r="120" fill="url(#gl)" opacity="0"/><ellipse id="lL" class="lid" cx="150" cy="160" rx="121" ry="101" fill="var(--lid)"/></g>
-<g id="eR"><ellipse cx="450" cy="160" rx="120" ry="100" fill="#f8fafc" stroke="#cbd5e1" stroke-width="3"/><circle cx="450" cy="160" r="72" fill="url(#ig)"/><circle id="pR" cx="450" cy="160" r="22.5" fill="#020617"/><circle cx="432" cy="140" r="7" fill="#fff" opacity=".8"/><circle id="gR" cx="450" cy="160" r="120" fill="url(#gl)" opacity="0"/><ellipse id="lR" class="lid" cx="450" cy="160" rx="121" ry="101" fill="var(--lid)"/></g>
-</svg>
+<span class="lab" id="labL" style="left:8px">LEFT · Saline</span><span class="lab" id="labR" style="right:8px">RIGHT · Saline</span>
+<svg viewBox="0 0 600 300" id="svg"></svg>
 <div id="drop">💧</div>
 <div id="ruler" hidden><div class="hd">mm</div><div id="rb"></div></div>
+<div id="rdo" hidden></div>
 </div>
 <div class="tools" style="margin-top:8px">
 <button class="tool" data-tool="torch"><span class="ic">🔦</span>Light</button>
 <button class="tool" data-tool="cotton"><span class="ic"><svg width="30" height="26" viewBox="0 0 30 26"><line x1="4" y1="22" x2="20" y2="8" stroke="#a16207" stroke-width="3" stroke-linecap="round"/><circle cx="22" cy="6" r="5" fill="#fff" stroke="#94a3b8"/></svg></span>Cotton</button>
-<button class="tool" data-tool="iop"><span class="ic">⏲️</span>IOP</button>
-<button class="tool" id="rbtn" onclick="togRuler()"><span class="ic">📏</span>Scale</button>
+<button class="tool" data-tool="iop"><span class="ic"><svg width="22" height="30" viewBox="0 0 30 42"><rect x="8.5" y="1" width="13" height="15" rx="3" fill="#e2e8f0" stroke="#475569" stroke-width="1.3"/><path d="M11 13a4.5 4.5 0 0 1 8 0" stroke="#334155" stroke-width="1" fill="none"/><path d="M15 13l-2.5-5" stroke="#dc2626" stroke-width="1.3" stroke-linecap="round"/><rect x="11" y="16" width="8" height="12" rx="2" fill="#64748b" stroke="#334155" stroke-width="1.2"/><rect x="13.6" y="28" width="2.8" height="8" fill="#cbd5e1" stroke="#64748b" stroke-width=".8"/><ellipse cx="15" cy="37.5" rx="7.5" ry="2.6" fill="#94a3b8" stroke="#475569" stroke-width="1.2"/></svg></span>Tonometer</button>
+<button class="tool" id="rbtn" onclick="togRuler()"><span class="ic"><svg width="20" height="28" viewBox="0 0 20 28"><rect x="3" y="1" width="14" height="26" rx="2.5" fill="#dbe6f3" stroke="#475569" stroke-width="1.4"/><g stroke="#334155" stroke-width="1.2"><path d="M3 5h8M3 9h5M3 13h8M3 17h5M3 21h8"/></g><path d="M3 5h14" stroke="#dc2626" stroke-width="1.6"/></svg></span>Scale</button>
 </div>
+<div id="tono" style="margin-top:8px;display:flex;align-items:center;gap:10px;background:var(--bg);border:1px solid var(--bd);border-radius:12px;padding:6px 12px"><svg id="gsv" viewBox="0 0 200 128" width="150" style="flex:none"></svg><div style="flex:1;min-width:0"><div class="mu" style="font-size:11px;font-weight:700;letter-spacing:.06em">TONOMETER · IOP</div><div id="gv" style="font-size:24px;font-weight:800;line-height:1.2">—</div><div id="gt" class="mu" style="font-size:12px">Drag the tonometer onto an eye</div></div></div>
 <div class="row" style="margin-top:8px;justify-content:flex-end"><button class="btn g" onclick="reset()">↺ Reset</button></div>
 </div>
 
 <div class="card">
 <h2>Observations</h2>
-<table><thead><tr><th>Parameter</th><th>Left (control)</th><th>Right (test)</th></tr></thead><tbody>
+<table><thead><tr><th>Parameter</th><th>Left eye</th><th>Right eye</th></tr></thead><tbody>
 <tr><td>Pupil (mm)</td><td id="L0" class="mu">—</td><td id="R0" class="mu">—</td></tr>
 <tr><td>Light reflex</td><td id="L1" class="mu">—</td><td id="R1" class="mu">—</td></tr>
 <tr><td>Corneal reflex</td><td id="L2" class="mu">—</td><td id="R2" class="mu">—</td></tr>
@@ -217,24 +220,137 @@ adrenaline:{n:'Adrenaline 0.1%',mm:6,lr:1,cr:1,iop:'Decreased (~11)',m:'Direct �
 lignocaine:{n:'Lignocaine 1%',mm:4.5,lr:1,cr:0,iop:'Normal (~15)',m:'Na⁺ channel block in corneal nerves: corneal reflex lost, pupil normal.'}
 };
 const $=id=>document.getElementById(id);
-let right='saline',md='p',unk=null;
+/* realistic rabbit eye artwork v2 */
+(function(){
+ let sd=23;const rnd=()=>{sd|=0;sd=sd+0x6D2B79F5|0;let t=Math.imul(sd^sd>>>15,1|sd);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
+ const f=n=>n.toFixed(1),CY=160,TAU=6.2832;
+ const FC=['#b49a74','#9a7e58','#7d6445','#5e4830','#47341f','#2b2018'];
+ function hair(x,y,a,L,col,op,w){return '<path d="M'+f(x)+' '+f(y)+'q'+f(Math.cos(a+.25)*L*.5)+' '+f(Math.sin(a+.25)*L*.5)+' '+f(Math.cos(a)*L)+' '+f(Math.sin(a)*L)+'" stroke="'+col+'" stroke-opacity="'+op.toFixed(2)+'" stroke-width="'+w.toFixed(1)+'" stroke-linecap="round" fill="none"/>'}
+ function bgFur(n){let o='';for(let i=0;i<n;i++){const x=rnd()*600,y=rnd()*300;
+  o+=hair(x,y,Math.PI/2+(rnd()-.5)*1.2,10+rnd()*14,FC[Math.floor(rnd()*rnd()*6)],.1+rnd()*.28,.6+rnd()*.9)}return o}
+ function eyeFur(cx){let o='';
+  for(let i=0;i<340;i++){const a=rnd()*TAU,r=1.03+Math.pow(rnd(),1.6)*.55,x=cx+Math.cos(a)*118*r,y=CY+Math.sin(a)*98*r,L=8+rnd()*14*r;
+   const near=r<1.12,c=near?(rnd()<.5?'#d8c6a2':'#a38762'):FC[Math.floor(rnd()*6)];
+   o+=hair(x,y,a,L,c,near?.3+rnd()*.35:.15+rnd()*.3,.7+rnd()*1)}
+  return o}
+ function fibers(cx){let o='';
+  for(let i=0;i<150;i++){const a=i/150*TAU+rnd()*.03,r1=12+rnd()*8,r2=60+rnd()*34,lt=i%3===0;
+   o+='<line x1="'+f(cx+Math.cos(a)*r1)+'" y1="'+f(CY+Math.sin(a)*r1)+'" x2="'+f(cx+Math.cos(a)*r2)+'" y2="'+f(CY+Math.sin(a)*r2)+'" stroke="'+(lt?'#e3a85e':'#140803')+'" stroke-opacity="'+(lt?.14+rnd()*.14:.25+rnd()*.25).toFixed(2)+'" stroke-width="'+(.8+rnd()*1.8).toFixed(1)+'"/>'}
+  for(let i=0;i<26;i++){const a=rnd()*TAU,r=30+rnd()*50,rr=3+rnd()*7;
+   o+='<ellipse cx="'+f(cx+Math.cos(a)*r)+'" cy="'+f(CY+Math.sin(a)*r)+'" rx="'+f(rr)+'" ry="'+f(rr*.5)+'" transform="rotate('+f(a*57.3)+' '+f(cx+Math.cos(a)*r)+' '+f(CY+Math.sin(a)*r)+')" fill="#0e0602" opacity="'+(.18+rnd()*.2).toFixed(2)+'"/>'}
+  return o}
+ function veins(cx,s){let o='';
+  const v=[[-1,-.2,-.55,-.5],[-.9,.35,-.5,.55],[1,-.3,.6,-.55],[.95,.4,.55,.6],[-.2,-1,.1,-.7],[.3,1,.2,.72]];
+  v.forEach(q=>{const x1=cx+q[0]*116,y1=CY+q[1]*88,x2=cx+q[2]*92,y2=CY+q[3]*76;
+   o+='<path d="M'+f(x1)+' '+f(y1)+'Q'+f((x1+x2)/2+rnd()*14-7)+' '+f((y1+y2)/2+rnd()*14-7)+' '+f(x2)+' '+f(y2)+'" stroke="#b0443f" stroke-opacity=".28" stroke-width="1" fill="none"/>'});
+  return o}
+ function lashes(cx){let o='';
+  for(let i=0;i<13;i++){const a=(208+i*(124/12)+rnd()*4)*Math.PI/180,x=cx+Math.cos(a)*119,y=CY+Math.sin(a)*99,
+   nx=Math.cos(a),ny=Math.sin(a),L=10+rnd()*9,bend=(i-6)*1.1;
+   o+='<path d="M'+f(x)+' '+f(y)+'q'+f(nx*L*.5+bend)+' '+f(ny*L*.6)+' '+f(nx*L+bend*1.7)+' '+f(ny*L)+'" stroke="#1a110a" stroke-opacity=".75" stroke-width="1.7" stroke-linecap="round" fill="none"/>'}
+  return o}
+ function eye(k,cx,s){
+  const ci=cx+s*104,px=cx-52,py=CY-54;
+  return '<g id="e'+k+'">'
+  +'<clipPath id="cp'+k+'"><ellipse cx="'+cx+'" cy="'+CY+'" rx="118" ry="98"/></clipPath>'
+  +'<g clip-path="url(#cp'+k+')">'
+  +'<ellipse cx="'+cx+'" cy="'+CY+'" rx="118" ry="98" fill="url(#sc)"/>'
+  +veins(cx,s)
+  +'<circle cx="'+cx+'" cy="'+CY+'" r="95" fill="url(#ir)"/>'
+  +fibers(cx)
+  +'<circle cx="'+cx+'" cy="'+CY+'" r="56" fill="none" stroke="#e0a460" stroke-opacity=".22" stroke-width="3.5"/>'
+  +'<circle cx="'+cx+'" cy="'+CY+'" r="94" fill="none" stroke="#0f0602" stroke-width="7" stroke-opacity=".85"/>'
+  +'<circle id="p'+k+'" cx="'+cx+'" cy="'+CY+'" r="22.5" fill="#010101" stroke="#d08a45" stroke-opacity=".5" stroke-width="5" paint-order="stroke" filter="url(#soft)"/>'
+  +'<ellipse cx="'+ci+'" cy="'+(CY+8)+'" rx="15" ry="23" fill="url(#car)" opacity=".75"/>'
+  +'<ellipse cx="'+cx+'" cy="'+CY+'" rx="118" ry="98" fill="url(#sheen)"/>'
+  +'<path d="M'+(cx-70)+' '+(CY+58)+'A88 88 0 0 0 '+(cx+66)+' '+(CY+62)+'" stroke="#fff" stroke-opacity=".16" stroke-width="5" fill="none" stroke-linecap="round"/>'
+  +'<g transform="rotate(-14 '+px+' '+py+')"><rect x="'+(px-20)+'" y="'+(py-14)+'" width="42" height="29" rx="6" fill="#fff" opacity=".74"/>'
+  +'<path d="M'+px+' '+(py-14)+'v29M'+(px-20)+' '+py+'h42" stroke="#3a2412" stroke-opacity=".35" stroke-width="2"/></g>'
+  +'<circle cx="'+(cx+44)+'" cy="'+(CY+40)+'" r="5" fill="#fff" opacity=".4"/>'
+  +'<circle id="g'+k+'" cx="'+cx+'" cy="'+CY+'" r="120" fill="url(#gl)" opacity="0"/>'
+  +'<circle id="t'+k+'" class="tap" cx="'+cx+'" cy="'+CY+'" r="34" fill="none" stroke="#7dd3fc" stroke-width="3.5"/>'
+  +'<rect x="'+(cx-120)+'" y="'+(CY-100)+'" width="240" height="78" fill="url(#ls)"/>'
+  +'<rect x="'+(cx-120)+'" y="'+(CY+55)+'" width="240" height="45" fill="url(#lb)"/>'
+  +'</g>'
+  +'<ellipse cx="'+cx+'" cy="'+CY+'" rx="118" ry="98" fill="none" stroke="#1a1009" stroke-width="6"/>'
+  +'<ellipse cx="'+cx+'" cy="'+CY+'" rx="115" ry="95" fill="none" stroke="#c9918a" stroke-opacity=".5" stroke-width="1.6"/>'
+  +'<path d="M'+(cx-78)+' '+(CY+89)+'Q'+cx+' '+(CY+104)+' '+(cx+78)+' '+(CY+89)+'" stroke="#fff" stroke-opacity=".4" stroke-width="2.2" fill="none" stroke-linecap="round"/>'
+  +'<ellipse id="l'+k+'" class="lid" cx="'+cx+'" cy="'+CY+'" rx="121" ry="101" fill="url(#lidg)" stroke="#1a1009" stroke-width="3"/>'
+  +'</g><g>'+lashes(cx)+'</g>'}
+ const defs='<defs>'
+ +'<linearGradient id="fur" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6e563a"/><stop offset=".5" stop-color="#85694a"/><stop offset="1" stop-color="#5e4830"/></linearGradient>'
+ +'<radialGradient id="vig" cx=".5" cy=".5" r=".75"><stop offset=".5" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".55"/></radialGradient>'
+ +'<radialGradient id="ering"><stop offset=".5" stop-color="#d9c6a2" stop-opacity=".5"/><stop offset="1" stop-color="#d9c6a2" stop-opacity="0"/></radialGradient>'
+ +'<radialGradient id="sc" cx=".5" cy=".5" r=".55"><stop offset=".5" stop-color="#efe4d8"/><stop offset=".85" stop-color="#dcc0b2"/><stop offset="1" stop-color="#a97a6e"/></radialGradient>'
+ +'<radialGradient id="ir" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#b06c2e"/><stop offset=".35" stop-color="#7f4822"/><stop offset=".8" stop-color="#4a270f"/><stop offset="1" stop-color="#22110a"/></radialGradient>'
+ +'<radialGradient id="car"><stop offset="0" stop-color="#d98480"/><stop offset=".7" stop-color="#b65f5d"/><stop offset="1" stop-color="#b65f5d" stop-opacity="0"/></radialGradient>'
+ +'<radialGradient id="sheen" cx=".35" cy=".28" r=".75"><stop offset="0" stop-color="#fff" stop-opacity=".2"/><stop offset=".5" stop-color="#fff" stop-opacity=".04"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>'
+ +'<linearGradient id="ls" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#000" stop-opacity=".7"/><stop offset=".6" stop-color="#000" stop-opacity=".2"/><stop offset="1" stop-color="#000" stop-opacity="0"/></linearGradient>'
+ +'<linearGradient id="lb" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#000" stop-opacity=".32"/><stop offset="1" stop-color="#000" stop-opacity="0"/></linearGradient>'
+ +'<linearGradient id="lidg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4f3b28"/><stop offset=".5" stop-color="#7a6040"/><stop offset="1" stop-color="#4a3624"/></linearGradient>'
+ +'<radialGradient id="gl"><stop offset="0" stop-color="#fff6c8" stop-opacity=".85"/><stop offset=".6" stop-color="#fde047" stop-opacity=".4"/><stop offset="1" stop-color="#fde047" stop-opacity="0"/></radialGradient>'
+ +'<filter id="soft" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation=".9"/></filter>'
+ +'<filter id="blur8" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="8"/></filter>'
+ +'<filter id="grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".9 .35" numOctaves="2" seed="4"/><feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .55 -.18"/></filter>'
+ +'</defs>';
+ const sock=cx=>'<ellipse cx="'+cx+'" cy="'+(CY+4)+'" rx="132" ry="112" fill="#000" opacity=".55" filter="url(#blur8)"/><ellipse cx="'+cx+'" cy="'+(CY-4)+'" rx="150" ry="132" fill="url(#ering)"/>';
+ const bg='<rect width="600" height="300" fill="url(#fur)"/>'+bgFur(900)+'<rect width="600" height="300" filter="url(#grain)" opacity=".5"/>'
+  +sock(150)+sock(450)+eyeFur(150)+eyeFur(450);
+ $('svg').innerHTML=defs+bg+eye('L',150,1)+eye('R',450,-1)+'<rect width="600" height="300" fill="url(#vig)" pointer-events="none"/>';
+})();
+
+let dg={L:'saline',R:'saline'},md='p',unk=null;
 const cur={L:22.5,R:22.5},tw={L:0,R:0};
 const sel=$('sel');
 Object.keys(D).forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=D[k].n;sel.appendChild(o)});
-function drug(k){return D[k==='L'?'saline':right]}
+function drug(k){return D[dg[k]]}
 function tween(k,to,ms){ms=ms||500;const id=++tw[k],from=cur[k],t0=performance.now(),el=$('p'+k);
 (function f(t){if(id!==tw[k])return;const p=Math.min(1,(t-t0)/ms);cur[k]=from+(to-from)*p;el.setAttribute('r',cur[k].toFixed(2));if(p<1)requestAnimationFrame(f)})(t0)}
 function base(k){return drug(k).mm*5}
 function say(h){$('msg').innerHTML=h}
+function labels(){
+ if(md==='e'){$('labL').textContent='LEFT · Control';$('labR').textContent='RIGHT · Unknown';return}
+ $('labL').textContent='LEFT · '+(dg.L==='saline'?'Saline':D[dg.L].n.split(' ')[0]);
+ $('labR').textContent='RIGHT · '+(dg.R==='saline'?'Saline':D[dg.R].n.split(' ')[0]);
+}
 function rec(k,row,txt,cls){const e=$(k+row);e.textContent=txt;e.className=cls||''}
-function clearTable(k){['0','1','2','3'].forEach(r=>rec(k,r,'—','mu'))}
-function clearAll(){clearTable('L');clearTable('R')}
+function clearTable(k){['0','1','2','3'].forEach(r=>rec(k,r,'—','mu'));if(gEye===k)greset()}
+function clearAll(){clearTable('L');clearTable('R');greset()}
+
+/* tonometer dial + scale readout */
+let gEye=null,rdT=0;
+(function(){
+ const pt=(v,rad)=>{const a=Math.PI*(1-v/40);return[100+rad*Math.cos(a),105-rad*Math.sin(a)]};
+ const zone=(v1,v2,c)=>{const A=pt(v1,74),B=pt(v2,74);return '<path d="M'+A[0].toFixed(1)+' '+A[1].toFixed(1)+'A74 74 0 0 1 '+B[0].toFixed(1)+' '+B[1].toFixed(1)+'" stroke="'+c+'" stroke-width="12" fill="none"/>'};
+ let o='<path d="M26 105A74 74 0 0 1 174 105" stroke="#000" stroke-opacity=".25" stroke-width="16" fill="none"/>'+zone(0,10,'#3b82f6')+zone(10,21,'#10b981')+zone(21,40,'#ef4444');
+ for(let v=0;v<=40;v+=5){const A=pt(v,64),B=pt(v,(v%10?68:60)),T=pt(v,90);
+  o+='<line x1="'+A[0].toFixed(1)+'" y1="'+A[1].toFixed(1)+'" x2="'+B[0].toFixed(1)+'" y2="'+B[1].toFixed(1)+'" style="stroke:var(--tx)" stroke-width="1"/>';
+  if(v%10===0)o+='<text x="'+T[0].toFixed(1)+'" y="'+(T[1]+3).toFixed(1)+'" text-anchor="middle" font-size="10" font-weight="700" style="fill:var(--mut)">'+v+'</text>'}
+ o+='<g id="nd" style="transform-origin:100px 105px;transform:rotate(-90deg);transition:transform 1s cubic-bezier(.25,1.6,.5,1)"><path d="M97.5 108L100 36L102.5 108Z" fill="#dc2626"/></g>'
+  +'<circle cx="100" cy="105" r="7" style="fill:var(--tx)"/><circle cx="100" cy="105" r="2.5" style="fill:var(--bg)"/>'
+  +'<text x="100" y="125" text-anchor="middle" font-size="8" font-weight="700" style="fill:var(--mut)">mmHg</text>';
+ $('gsv').innerHTML=o;
+})();
+function iopNum(d){const m=/~(\d+)/.exec(d.iop);return m?+m[1]:15}
+function gset(k,d){
+ const v=iopNum(d),w=d.iop.split(' ')[0],z=w==='Decreased'?['Low','#3b82f6']:w==='Increased'?['Raised','#ef4444']:['Normal','#10b981'];
+ gEye=k;$('nd').style.transform='rotate('+(-90+Math.min(40,v)/40*180)+'deg)';
+ $('gv').innerHTML=v+' <small>mmHg</small>';$('gv').style.color=z[1];
+ $('gt').textContent=(k==='L'?'Left':'Right')+' eye · '+z[0]}
+function greset(){gEye=null;$('nd').style.transform='rotate(-90deg)';$('gv').textContent='—';$('gv').style.color='';$('gt').textContent='Drag the tonometer onto an eye'}
+function tap(k){const c=$('t'+k);c.classList.remove('go');void c.getBoundingClientRect();c.classList.add('go')}
+function rdo(t){const b=$('rdo'),r=$('ruler'),s=$('stage');b.textContent=t;b.hidden=false;
+ b.style.left=Math.min(r.offsetLeft+r.offsetWidth+6,s.clientWidth-96)+'px';b.style.top=(r.offsetTop+6)+'px';
+ clearTimeout(rdT);rdT=setTimeout(()=>{b.hidden=true},3500)}
+
 
 function instill(){
- if(md==='p')right=sel.value;
- const d=$('drop');d.classList.remove('go');void d.offsetWidth;d.classList.add('go');
- clearTable('R');
- setTimeout(()=>{tween('R',base('R'),900);say(md==='e'?'Drops instilled in the right eye. Test it now.':'<b>'+D[right].n+'</b> instilled in the right eye. Test it now.')},700);
+ const k=md==='p'?$('eyeSel').value:'R';
+ if(md==='p')dg[k]=sel.value;
+ const d=$('drop');d.style.left=k==='L'?'22%':'72%';
+ d.classList.remove('go');void d.offsetWidth;d.classList.add('go');
+ clearTable(k);
+ setTimeout(()=>{tween(k,base(k),900);labels();say(md==='e'?'Drops instilled in the right eye. Test it now.':'<b>'+D[dg[k]].n+'</b> instilled in the '+(k==='L'?'left':'right')+' eye. Test it now.')},700);
 }
 function mode(m){
  md=m;$('tp').className=m==='p'?'on':'';$('te').className=m==='e'?'on':'';
@@ -243,7 +359,7 @@ function mode(m){
 }
 function newExam(){
  const ks=['physostigmine','atropine','ephedrine','adrenaline','lignocaine'];
- unk=ks[Math.floor(Math.random()*ks.length)];right=unk;
+ unk=ks[Math.floor(Math.random()*ks.length)];dg={L:'saline',R:unk};labels();
  $('smp').textContent='Unknown sample #'+(100+Math.floor(Math.random()*899));
  $('fb').hidden=true;clearAll();tween('L',22.5);tween('R',base('R'),900);
  say('Unknown drug instilled in the right eye. Use the tools to identify it.');
@@ -260,13 +376,13 @@ function answer(k){
  f.innerHTML=(ok?'<b class="ok">Correct!</b> ':'<b class="bad">Not quite.</b> It was ')+'<b>'+D[unk].n+'</b>. '+D[unk].m;
 }
 function reset(){
- if(md==='p'){right='saline';sel.value='saline'}
+ if(md==='p'){dg={L:'saline',R:'saline'};sel.value='saline'}labels();
  clearAll();tween('L',22.5);tween('R',base('R'));
- say('Drag a tool onto an eye. Left eye = saline control, right eye = test eye.');
+ say('Both eyes reset to saline. Pick an eye and a drug, instill, then test.');
 }
 
 /* eyes + tools */
-const IC={torch:'🔦',iop:'⏲️',cotton:'<svg width="44" height="40" viewBox="0 0 30 26"><line x1="4" y1="22" x2="20" y2="8" stroke="#a16207" stroke-width="3" stroke-linecap="round"/><circle cx="22" cy="6" r="5" fill="#fff" stroke="#94a3b8"/></svg>'};
+const IC={torch:'🔦',iop:'<svg width="40" height="56" viewBox="0 0 30 42"><rect x="8.5" y="1" width="13" height="15" rx="3" fill="#e2e8f0" stroke="#475569" stroke-width="1.3"/><path d="M11 13a4.5 4.5 0 0 1 8 0" stroke="#334155" stroke-width="1" fill="none"/><path d="M15 13l-2.5-5" stroke="#dc2626" stroke-width="1.3" stroke-linecap="round"/><rect x="11" y="16" width="8" height="12" rx="2" fill="#64748b" stroke="#334155" stroke-width="1.2"/><rect x="13.6" y="28" width="2.8" height="8" fill="#cbd5e1" stroke="#64748b" stroke-width=".8"/><ellipse cx="15" cy="37.5" rx="7.5" ry="2.6" fill="#94a3b8" stroke="#475569" stroke-width="1.2"/></svg>',cotton:'<svg width="44" height="40" viewBox="0 0 30 26"><line x1="4" y1="22" x2="20" y2="8" stroke="#a16207" stroke-width="3" stroke-linecap="round"/><circle cx="22" cy="6" r="5" fill="#fff" stroke="#94a3b8"/></svg>'};
 const gh=$('ghost');let dr=null;
 function eyeAt(x,y){
  for(const k of ['L','R']){const r=$('e'+k).getBoundingClientRect();
@@ -274,14 +390,14 @@ function eyeAt(x,y){
   if(((x-cx)/a)**2+((y-cy)/b)**2<=1)return k}
  return null}
 function enter(t,k){
- const d=drug(k),s=k==='L'?'Left (control)':'Right (test)';
+ const d=drug(k),s=(k==='L'?'Left':'Right')+(md==='e'?'':' ('+D[dg[k]].n.split(' ')[0]+')');
  if(t==='torch'){$('g'+k).setAttribute('opacity',1);
   if(d.lr){tween(k,Math.max(8,base(k)-14),250);rec(k,1,'Present (+)','ok');say('<b>Light reflex, '+s+':</b> pupil constricts. Present (+)')}
   else{rec(k,1,'Absent (−)','bad');say('<b>Light reflex, '+s+':</b> no response. Absent (−)')}}
  if(t==='cotton'){
   if(d.cr){const l=$('l'+k);l.classList.remove('bl');void l.getBoundingClientRect();l.classList.add('bl');rec(k,2,'Present (+)','ok');say('<b>Corneal reflex, '+s+':</b> eye blinks. Present (+)')}
   else{rec(k,2,'Absent (−)','bad');say('<b>Corneal reflex, '+s+':</b> no blink. Absent (−)')}}
- if(t==='iop'){rec(k,3,d.iop);say('<b>IOP, '+s+':</b> '+d.iop+' mmHg')}
+ if(t==='iop'){rec(k,3,d.iop);gset(k,d);tap(k);say('<b>IOP, '+s+':</b> '+d.iop+' mmHg')}
 }
 function leave(t,k){if(t==='torch'){$('g'+k).setAttribute('opacity',0);tween(k,base(k),400)}}
 function mv(e){
@@ -303,13 +419,15 @@ document.querySelectorAll('[data-tool]').forEach(b=>b.addEventListener('pointerd
 const ru=$('ruler'),st=$('stage');
 function ppm(){return 10*st.getBoundingClientRect().width/600}
 function buildRuler(){
- const p=ppm(),rb=$('rb');rb.innerHTML='';rb.style.height=(11*p)+'px';
- for(let i=0;i<=10;i++){const t=document.createElement('div');t.className='tk';t.style.top=(i*p)+'px';
-  t.innerHTML='<i style="width:'+(i%2?10:18)+'px"></i>'+(i%2?'':'<span style="position:absolute;left:21px;top:-5px;line-height:1">'+i+'</span>');rb.appendChild(t)}
+ const p=ppm(),rb=$('rb');rb.innerHTML='';rb.style.height=(10.6*p)+'px';
+ for(let i=0;i<=20;i++){const mm=i/2,maj=i%2===0,t=document.createElement('div');t.className='tk';t.style.top=(i*p/2)+'px';
+  const len=maj?(mm%5===0?24:16):8;
+  t.innerHTML='<i style="width:'+len+'px'+(i===0?';height:2px;background:#dc2626':'')+'"></i>'+(maj&&mm%2===0?'<span style="position:absolute;left:27px;top:-5px;line-height:1;font-weight:700">'+mm+'</span>':'');
+  rb.appendChild(t)}
 }
 function togRuler(){
  ru.hidden=!ru.hidden;$('rbtn').classList.toggle('on',!ru.hidden);
- if(!ru.hidden){buildRuler();const w=st.getBoundingClientRect().width;ru.style.left=(w/2-17)+'px';ru.style.top='6px';
+ if(!ru.hidden){buildRuler();const w=st.getBoundingClientRect().width;ru.style.left=(w/2-21)+'px';ru.style.top='6px';
   say('Drag the scale next to a pupil, and release to read its diameter (0 mm at the top tick).')}
 }
 window.addEventListener('resize',()=>{if(!ru.hidden)buildRuler()});
@@ -321,7 +439,7 @@ ru.addEventListener('pointermove',e=>{if(!rd)return;const s=st.getBoundingClient
 ru.addEventListener('pointerup',()=>{
  rd=null;const r=ru.getBoundingClientRect(),cx=(r.left+r.right)/2;
  for(const k of ['L','R']){const e=$('e'+k).getBoundingClientRect();
-  if(cx>e.left&&cx<e.right){const mm=drug(k).mm;rec(k,0,mm+' mm');say('<b>Pupil, '+(k==='L'?'left (control)':'right (test)')+':</b> '+mm+' mm'+(mm<3?' (miosis)':mm>5.5?' (mydriasis)':' (normal)'))}}
+  if(cx>e.left&&cx<e.right){const mm=drug(k).mm;rec(k,0,mm+' mm');rdo('⌀ '+mm+' mm');say('<b>Pupil, '+(k==='L'?'left':'right')+':</b> '+mm+' mm'+(mm<3?' (miosis)':mm>5.5?' (mydriasis)':' (normal)'))}}
 });
 tween('R',22.5,1);
 
