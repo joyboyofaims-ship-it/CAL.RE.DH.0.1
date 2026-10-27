@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Frog Heart Kymograph</title>
+<style>
+:root{--bg:#0d1117;--card:#161b22;--ac:#238636;--tx:#c9d1d9;--mu:#8b949e;--bd:#30363d;--bad:#da3633;--warn:#d29922;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-tap-highlight-color:transparent}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{background:var(--bg);color:var(--tx);min-height:100dvh}
+header{background:var(--card);padding:10px 14px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:10px}
+header .hb{width:auto;padding:6px 10px;font-size:.8rem;border-radius:6px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);font-weight:600}
+header h1{font-size:1rem;color:#58a6ff}header .sub{font-size:.7rem;color:var(--mu)}
+.main{display:flex;flex-direction:column;gap:10px;padding:10px;max-width:700px;margin:0 auto}
+.kymo{background:#000;border:1px solid var(--bd);border-radius:8px;padding:8px;display:flex;flex-direction:column;gap:6px}
+.bar{display:flex;justify-content:space-between;align-items:center;font-size:.75rem;color:#58a6ff;font-weight:700;flex-wrap:wrap;gap:6px}
+.tc{display:flex;gap:5px;align-items:center;flex-wrap:wrap}
+.sm{width:auto;padding:5px 9px;font-size:.75rem;border-radius:5px;border:1px solid var(--bd);background:var(--card);color:var(--tx);font-weight:600}
+.on{background:#1f6feb!important;border-color:#388bfd!important;color:#fff!important}
+#vp{touch-action:pan-x;width:100%;height:220px;overflow-x:auto;overflow-y:hidden;background:#000;border:1px solid #21262d;border-radius:4px}
+canvas{display:block;background:#000;height:100%}
+.hint{font-size:.65rem;color:var(--mu);text-align:right}
+.mg{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.mc{background:var(--card);border:1px solid var(--bd);border-radius:6px;padding:6px;text-align:center}
+.mt{font-size:.6rem;color:var(--mu);text-transform:uppercase}.mv{font-size:.9rem;font-weight:700;margin-top:2px}
+.cc,.tcard{background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:10px;display:flex;flex-direction:column;gap:8px}
+.st{font-size:.8rem;font-weight:600}
+select,.b{width:100%;padding:10px;border-radius:6px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);font-size:.85rem;font-weight:600}
+.g2{display:grid;grid-template-columns:2fr 1fr;gap:6px}
+.p{background:var(--ac);border:0;color:#fff}.s{background:#21262d}.d{background:#8957e5;border:0;color:#fff}
+.tcard{max-height:200px;overflow:auto}
+table{width:100%;border-collapse:collapse;font-size:.72rem;text-align:left}
+th,td{padding:5px 6px;border-bottom:1px solid var(--bd)}th{color:var(--mu);position:sticky;top:0;background:var(--card)}
+</style></head><body>
+<header><button class="hb" onclick="if(history.length>1){history.back()}else{location.href='index.html'}">&larr; Back</button><div><h1>Smoked Drum Kymograph Simulator</h1><div class="sub">Perfused frog heart (CAL)</div></div></header>
+<div class="main">
+<div class="kymo">
+ <div class="bar"><span>Paper drum</span>
+  <div class="tc"><button id="bP" class="sm">Pause</button><button id="bT" class="sm">Tall</button>
+  <button class="sm sp" data-s="0.5">0.5x</button><button class="sm sp on" data-s="1">1x</button><button class="sm sp" data-s="2">2x</button><button class="sm sp" data-s="4">4x</button></div>
+  <div class="tc"><span>Paper:</span><button class="sm pp" data-p="10">Tight</button><button class="sm pp on" data-p="20">Compact</button><button class="sm pp" data-p="60">Wide</button></div>
+  <div class="tc"><span>Zoom:</span><button class="sm" id="zO">&minus;</button><button class="sm" id="zI">+</button><button class="sm" id="zF">Fit all</button><button class="sm" id="zL">Live</button></div></div>
+ <div id="vp"><canvas id="cv"></canvas></div>
+ <div class="hint">Pinch with two fingers or use Zoom - / + to squeeze or stretch. Swipe to scroll. Live follows the pen again</div>
+</div>
+<div class="mg">
+ <div class="mc"><div class="mt">Rate</div><div class="mv" id="vR">60 BPM</div></div>
+ <div class="mc"><div class="mt">Amplitude</div><div class="mv" id="vA">100%</div></div>
+ <div class="mc"><div class="mt">Tone</div><div class="mv" id="vT">0 mm</div></div>
+ <div class="mc"><div class="mt">State</div><div class="mv" id="vS" style="color:#3fb950">Normal</div></div>
+</div>
+<div class="cc"><div class="st">Control panel</div>
+ <select id="dr">
+  <option value="kcl">Potassium chloride (diastolic arrest)</option>
+  <option value="cacl2">Calcium chloride (systolic arrest)</option>
+  <option value="epi">Adrenaline (rate and force up)</option>
+  <option value="norepi">Noradrenaline (rate and force up)</option>
+  <option value="isop">Isoprenaline (rate and force up)</option>
+  <option value="prop">Propranolol (beta blocker)</option>
+  <option value="ach">Acetylcholine (diastolic arrest)</option>
+  <option value="atrop">Atropine (muscarinic blocker)</option>
+ </select>
+ <div class="g2"><button class="b p" id="bI">Inject and mark drum</button><button class="b s" id="bW">Wash</button></div>
+ <button class="b d" id="bD">&#9654; Play full demo sequence</button>
+</div>
+<div class="tcard"><div class="st">Recorded observations</div>
+ <table><thead><tr><th>Drug</th><th>Rate</th><th>Amp</th><th>Tone</th><th>State</th></tr></thead><tbody id="tb"></tbody></table></div>
+</div>
+<script>
+(function(){
+var $=function(i){return document.getElementById(i)};
+var PPS=20,W=5000;
+var D={
+ kcl:{n:"KCl",f:"Potassium chloride",rate:0,amp:0,tone:-20,st:"Diastolic"},
+ cacl2:{n:"CaCl2",f:"Calcium chloride",rate:0,amp:0,tone:48,st:"Systolic"},
+ epi:{n:"Adrenaline",f:"Adrenaline",rate:88,amp:145,tone:8,bl:"prop"},
+ norepi:{n:"Noradrenaline",f:"Noradrenaline",rate:78,amp:135,tone:6,bl:"prop"},
+ isop:{n:"Isoprenaline",f:"Isoprenaline",rate:98,amp:155,tone:4,bl:"prop"},
+ prop:{n:"Propranolol",f:"Propranolol",rate:50,amp:65,tone:0,blk:"prop"},
+ ach:{n:"ACh",f:"Acetylcholine",rate:0,amp:0,tone:-14,st:"Diastolic",bl:"atrop"},
+ atrop:{n:"Atropine",f:"Atropine",rate:62,amp:100,tone:0,blk:"atrop"}
+};
+var BASE={f:"Normal (control)",rate:60,amp:100,tone:0,st:"None",note:""};
+var T=Object.assign({},BASE),cur={rate:60,amp:100,tone:0},blk={prop:0,atrop:0};
+var paused=false,follow=true,zx=1,speed=1,xPos=0,total=0,phase=0,acc=0,lastYf=.7,demoId=0;
+var tf=[],marks=[];
+var cv=$("cv"),ctx=cv.getContext("2d"),vp=$("vp");
+
+function fill(x0,w){x0=x0||0;w=w||cv.width;ctx.fillStyle="#000";ctx.fillRect(x0,0,w,cv.height);ctx.save();ctx.strokeStyle="#30363d";ctx.lineWidth=1;ctx.setLineDash([2,4]);ctx.beginPath();ctx.moveTo(x0,cv.height*.7);ctx.lineTo(x0+w,cv.height*.7);ctx.stroke();ctx.restore()}
+function initCanvas(){cv.width=W;cv.height=vp.clientHeight||220;lastYf=.7;fill()}
+function drawMark(x,t,r){var h=cv.height;ctx.save();ctx.strokeStyle="#ff4d4d";ctx.fillStyle="#ff4d4d";ctx.lineWidth=1;
+ ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke();ctx.setLineDash([]);
+ ctx.beginPath();ctx.moveTo(x,h-15);ctx.lineTo(x-5,h-5);ctx.lineTo(x+5,h-5);ctx.fill();
+ ctx.font="bold 11px sans-serif";ctx.fillText(t,x+4,h-20-(r||0)*12);ctx.restore()}
+function redraw(){fill();var h=cv.height;ctx.strokeStyle="#fff";ctx.lineWidth=1.8;ctx.beginPath();
+ for(var i=0;i<tf.length;i++){if(i)ctx.lineTo(i,tf[i]*h);else ctx.moveTo(0,tf[0]*h)}ctx.stroke();
+ marks.forEach(function(m){drawMark(m.x,m.t,m.r)})}
+new ResizeObserver(function(){var h=vp.clientHeight;if(h&&h!==cv.height){cv.height=h;redraw()}}).observe(vp);
+initCanvas();
+
+function shiftPaper(){var s=W/2;ctx.drawImage(cv,-s,0);fill(s,s);
+ tf.splice(0,s);for(var i=marks.length-1;i>=0;i--){marks[i].x-=s;if(marks[i].x<0)marks.splice(i,1)}xPos-=s;if(!follow)vp.scrollLeft=Math.max(0,vp.scrollLeft-s*zx)}
+function col(){
+ if(xPos>=W-2)shiftPaper();
+ var h=cv.height;phase+=2*Math.PI*cur.rate/60/PPS;
+ var w=Math.sin(phase),a=cur.amp/100;
+ var y=h*.7-cur.tone*h*.008-(w>0?Math.pow(w,.65)*a*h*.36:w*a*h*.012);
+ ctx.strokeStyle="#fff";ctx.lineWidth=1.8;ctx.beginPath();ctx.moveTo(Math.max(0,xPos-1),lastYf*h);ctx.lineTo(xPos,y);ctx.stroke();
+ tf[xPos]=y/h;lastYf=y/h;xPos++;total++}
+
+var last=performance.now(),fc=0;
+function loop(now){
+ var dt=Math.min(.1,(now-last)/1000);last=now;
+ if(!paused){var sd=dt*speed,k=1-Math.exp(-sd/1.2);
+  cur.rate+=(T.rate-cur.rate)*k;cur.amp+=(T.amp-cur.amp)*k;cur.tone+=(T.tone-cur.tone)*k;
+  acc+=PPS*sd;var n=Math.floor(acc);acc-=n;while(n-->0)col();
+  if(follow&&xPos*zx>vp.clientWidth/2)vp.scrollLeft=xPos*zx-vp.clientWidth/2}
+ if(++fc%6===0)ui();
+ requestAnimationFrame(loop)}
+requestAnimationFrame(loop);
+
+function sgn(v){return(v>0?"+":"")+Math.round(v)+" mm"}
+function ui(){
+ var arr=T.st!=="None"&&cur.rate<1&&cur.amp<3;
+ $("vR").textContent=Math.round(cur.rate)+" BPM";
+ $("vA").textContent=Math.round(cur.amp)+"%";
+ $("vT").textContent=sgn(cur.tone);
+ var e=$("vS");
+ if(T.st==="Systolic"&&arr){e.textContent="Systolic arrest";e.style.color="var(--bad)"}
+ else if(T.st==="Diastolic"&&arr){e.textContent="Diastolic arrest";e.style.color="var(--warn)"}
+ else if(T.note){e.textContent="Blocked";e.style.color="#58a6ff"}
+ else{e.textContent=T.st==="None"?"Active":"Changing";e.style.color="#3fb950"}}
+
+function apply(k){
+ if(k==="wash"){blk.prop=0;blk.atrop=0;T=Object.assign({},BASE,{f:"Washout"});return}
+ var d=D[k];
+ if(d.bl&&blk[d.bl]){T=Object.assign({},T,{f:d.f+" (blocked)",note:"No response"});return}
+ T={f:d.f,rate:d.rate,amp:d.amp,tone:d.tone,st:d.st||"None",note:""};
+ if(d.blk)blk[d.blk]=1}
+function log(){
+ var r=document.createElement("tr"),s=T.st!=="None"?T.st+" arrest":(T.note||"Regular");
+ [T.f,Math.round(T.rate),Math.round(T.amp)+"%",sgn(T.tone),s].forEach(function(v){var c=document.createElement("td");c.textContent=v;r.appendChild(c)});
+ $("tb").appendChild(r);r.scrollIntoView({block:"nearest"})}
+function mark(t){var r=marks.length%2;drawMark(xPos,t,r);marks.push({x:xPos,t:t,r:r})}
+function give(k,label){apply(k);mark(label);log()}
+
+$("bI").onclick=function(){demoId++;var k=$("dr").value;give(k,D[k].n)};
+$("bW").onclick=function(){demoId++;give("wash","Wash")};
+$("bP").onclick=function(){paused=!paused;this.textContent=paused?"Play":"Pause";this.classList.toggle("on",paused)};
+$("bT").onclick=function(){var t=vp.style.height!=="340px";vp.style.height=t?"340px":"220px";this.classList.toggle("on",t)};
+document.querySelectorAll(".sp").forEach(function(b){b.onclick=function(){speed=+b.dataset.s;
+ document.querySelectorAll(".sp").forEach(function(x){x.classList.toggle("on",x===b)})}});
+
+document.querySelectorAll(".pp").forEach(function(b){b.onclick=function(){PPS=+b.dataset.p;document.querySelectorAll(".pp").forEach(function(x){x.classList.toggle("on",x===b)})}});
+function setZoom(z,cx){z=Math.max(.05,Math.min(6,z));var c=(vp.scrollLeft+cx)/zx;zx=z;cv.style.width=(W*zx)+"px";vp.scrollLeft=c*zx-cx}
+cv.style.width=W+"px";
+$("zI").onclick=function(){setZoom(zx*1.5,vp.clientWidth/2)};
+$("zO").onclick=function(){setZoom(zx/1.5,vp.clientWidth/2)};
+$("zF").onclick=function(){follow=false;setZoom(vp.clientWidth/Math.max(xPos,200),0);vp.scrollLeft=0};
+$("zL").onclick=function(){follow=true;vp.scrollLeft=xPos*zx-vp.clientWidth/2};
+vp.addEventListener("wheel",function(){follow=false},{passive:true});
+var pd=0,pz=1;
+function dist(e){return Math.abs(e.touches[0].clientX-e.touches[1].clientX)||1}
+vp.addEventListener("touchstart",function(e){follow=false;if(e.touches.length===2){pd=dist(e);pz=zx}},{passive:true});
+vp.addEventListener("touchmove",function(e){if(e.touches.length===2&&pd){var r=vp.getBoundingClientRect();setZoom(pz*dist(e)/pd,(e.touches[0].clientX+e.touches[1].clientX)/2-r.left)}},{passive:true});
+vp.addEventListener("touchend",function(e){if(e.touches.length<2)pd=0},{passive:true});
+function reset(){xPos=0;total=0;phase=0;acc=0;tf.length=0;marks.length=0;T=Object.assign({},BASE);cur={rate:60,amp:100,tone:0};blk={prop:0,atrop:0};
+ $("tb").innerHTML="";log();initCanvas()}
+function waitPx(n,id){return new Promise(function(res){var s=total,t=setInterval(function(){
+ if(id!==demoId||total-s>=n){clearInterval(t);res()}},50)})}
+var SEQ=[["kcl","KCl",80],["wash","Wash",50],["cacl2","CaCl2",80],["wash","Wash",50],
+ ["epi","Adrenaline",80],["wash","Wash",50],["prop","Propranolol",70],["epi","Adrenaline+Prop",80],["wash","Wash",50],
+ ["ach","ACh",70],["wash","Wash",50],["atrop","Atropine",70],["ach","ACh+Atropine",80],["wash","Wash",50]];
+$("bD").onclick=async function(){
+ var id=++demoId;paused=false;follow=true;$("bP").textContent="Pause";$("bP").classList.remove("on");
+ reset();await waitPx(50,id);
+ for(var i=0;i<SEQ.length;i++){if(id!==demoId)return;give(SEQ[i][0],SEQ[i][1]);await waitPx(SEQ[i][2],id)}};
+log();
+})();
+</script></body></html>
