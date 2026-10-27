@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Dog CV Pharmacology CAL</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0b6e4f">
+<script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js");
+}
+</script><style>
+:root{--bg:#f3f5f9;--card:#fff;--text:#0f172a;--tx:#0f172a;--muted:#5b6b82;--mut:#5b6b82;--line:#d9dfeb;--bd:#d9dfeb;--accent:#4338ca;--ac:#4338ca;--on-ac:#fff;--ok:#047857;--danger:#be123c;--bad:#be123c;--st:#e6ebf5;--lid:#475569;color-scheme:light dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0b1020;--card:#141b2e;--text:#e8ecf5;--tx:#e8ecf5;--muted:#94a3b8;--mut:#94a3b8;--line:#26304a;--bd:#26304a;--accent:#818cf8;--ac:#818cf8;--on-ac:#0b1020;--ok:#34d399;--danger:#fb7185;--bad:#fb7185;--st:#070b17;--lid:#334155} }
+:root[data-theme="dark"]{--bg:#0b1020;--card:#141b2e;--text:#e8ecf5;--tx:#e8ecf5;--muted:#94a3b8;--mut:#94a3b8;--line:#26304a;--bd:#26304a;--accent:#818cf8;--ac:#818cf8;--on-ac:#0b1020;--ok:#34d399;--danger:#fb7185;--bad:#fb7185;--st:#070b17;--lid:#334155}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+[hidden]{display:none!important}
+#dog *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-tap-highlight-color:transparent}
+#dog{background:var(--bg);color:var(--text);padding:16px;padding-top:calc(16px + env(safe-area-inset-top,0px));padding-bottom:calc(16px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;align-items:center;min-height:100vh}
+#dog .container{width:100%;max-width:500px;display:flex;flex-direction:column;gap:16px}
+#dog header h1{font-size:1.25rem;color:var(--accent);margin-bottom:4px}
+#dog header p{font-size:.85rem;color:var(--muted)}
+#dog .card{background:var(--card);border-radius:12px;padding:16px}
+#dog .monitor-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+#dog .metric-box{background:rgba(15,23,42,.6);padding:10px;border-radius:8px;text-align:center;border:1px solid rgba(56,189,248,.1)}
+#dog .metric-label{font-size:.72rem;color:var(--muted)}
+#dog .metric-value{font-size:1.4rem;font-weight:bold;color:var(--ok);margin-top:4px}
+#dog canvas{width:100%;height:300px;background:#000;border-radius:8px;display:block;margin-top:8px}
+#dog .status{display:flex;flex-wrap:wrap;gap:8px;font-size:.8rem}
+#dog .chip{padding:4px 10px;border-radius:999px;border:1px solid var(--danger);color:var(--danger)}
+#dog .controls{display:flex;flex-direction:column;gap:12px}
+#dog .form-group{display:flex;flex-direction:column;gap:6px}
+#dog label{font-size:.85rem;color:var(--muted)}
+#dog input[type=number]{width:100%;padding:12px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-size:16px}
+#dog select{width:100%;padding:12px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-size:16px}
+#dog button{background:var(--accent);color:var(--bg);border:none;padding:14px;border-radius:8px;font-weight:bold;font-size:1rem;cursor:pointer;min-height:48px}
+#dog button:active{opacity:.8}
+#dog .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+#dog button.ghost{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+#dog .log-box{background:var(--bg);border-radius:8px;padding:10px;font-size:.85rem;color:var(--muted);height:140px;overflow-y:auto;border:1px solid var(--line);margin-top:6px}
+#dog .log-entry{margin-bottom:6px;line-height:1.35}
+#dog table{width:100%;border-collapse:collapse;font-size:.85rem;margin-top:6px}
+#dog th,#dog td{padding:6px 4px;text-align:right;border-bottom:1px solid var(--line)}
+#dog th:first-child,#dog td:first-child{text-align:left}
+#dog th{color:var(--muted)}
+#dog .empty,#dog .hint{color:var(--muted);font-size:.85rem;margin-top:6px}
+#dog canvas#trend{touch-action:pan-y;cursor:grab}
+#dog .row4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}
+#dog .row4 button{padding:10px 4px;font-size:.85rem;min-height:44px}
+#dog canvas.g{height:300px;min-width:640px;margin:0}
+#dog .gw{overflow-x:auto;margin:8px 0;border-radius:8px}
+#dog details{border-bottom:1px solid var(--line);padding:8px 0}
+#dog summary{cursor:pointer;color:var(--accent);font-size:.92rem;line-height:1.4;padding:6px 0}
+#dog .qb{font-size:.85rem;line-height:1.5}
+#dog .qb p{color:var(--muted)}
+#dog .qb ul{margin:4px 0 8px 18px}
+#dog .qb li{margin-bottom:4px}
+#dog .qb b{color:var(--accent)}
+#dog .qb table td,#dog .qb table th{text-align:left;vertical-align:top;font-size:.78rem}
+#dog .row3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+#dog .row3 button{padding:10px 4px;font-size:.85rem;min-height:44px}
+#dog #vQ{font-size:.95rem;line-height:1.45;font-weight:600;margin:6px 0}
+#dog #vOpts{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+#dog button.vo{background:transparent;color:var(--text);border:1px solid var(--line);text-align:left;font-weight:600;font-size:.9rem;padding:12px;min-height:44px}
+#dog button.vo.right{border:2px solid var(--ok);color:var(--ok)}
+#dog button.vo.wrong{border:2px solid var(--danger);color:var(--danger)}
+#vAns{position:fixed;left:8px;right:8px;bottom:calc(68px + env(safe-area-inset-bottom,0px));z-index:45;background:var(--card);border:2px solid var(--ok);border-radius:12px;padding:10px 12px;color:var(--ok);font-weight:700;font-size:.9rem;line-height:1.4;max-height:32vh;overflow:auto}
+#vAns .x{float:right;background:none;border:0;color:var(--ok);font-size:1.1rem;padding:0 4px;min-height:0;font-weight:700}
+@keyframes dshake{0%,100%{transform:translate(0,0)}10%{transform:translate(-9px,4px)}20%{transform:translate(10px,-5px)}30%{transform:translate(-8px,-4px)}40%{transform:translate(8px,5px)}50%{transform:translate(-6px,3px)}60%{transform:translate(5px,-3px)}70%{transform:translate(-3px,2px)}80%{transform:translate(2px,-2px)}}
+@keyframes dflash{0%{background:rgba(255,0,40,.9)}35%{background:rgba(110,0,10,.85)}100%{background:rgba(0,0,0,.82)}}
+@keyframes dpulse{0%,100%{text-shadow:0 0 8px #f00}50%{text-shadow:0 0 26px #f00,0 0 46px #f00}}
+#deadOv.go{animation:dflash 1.3s ease-out forwards}
+#deadOv.go #deadOvT{animation:dshake .7s linear 2,dpulse 1s ease-in-out infinite}
+#dog{padding:14px 14px 96px;min-height:0;background:var(--bg);color:var(--text)}
+#dog .metric-box{background:var(--bg);border:1px solid var(--line)}
+#tabs{position:fixed;left:0;right:0;bottom:0;display:flex;gap:6px;padding:8px 12px calc(8px + env(safe-area-inset-bottom,0px));background:var(--card);border-top:1px solid var(--line);z-index:40;overflow-x:auto;-webkit-overflow-scrolling:touch}
+#tabs button, #tabs a{flex:1 0 auto;border:0;border-radius:12px;padding:11px 10px;font:600 13px system-ui,sans-serif;background:transparent;color:var(--muted);white-space:nowrap;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box}
+#tabs button[aria-selected="true"]{background:var(--accent);color:var(--on-ac)}
+#tabs button:focus-visible, #tabs a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+#err{position:fixed;top:0;left:0;right:0;z-index:99;background:#be123c;color:#fff;padding:10px;font-size:13px}
+</style></head><body>
+<div id="err" hidden></div>
+<div id="deadOv" hidden style="position:fixed;top:0;left:0;right:0;bottom:0;z-index:98;display:flex;align-items:center;justify-content:center;text-align:center;background:rgba(0,0,0,.75);color:#ff2d4d;font-weight:800;padding:20px;pointer-events:none"><div id="deadOvT"></div></div>
+<script>window.onerror=function(m,u,l){var e=document.getElementById("err");e.hidden=false;e.textContent="Script error: "+m+" (line "+l+")"};</script>
+<section id="dog">
+
+<div class="container">
+<header><h1>Dog CV Pharmacology CAL</h1><p>Virtual anesthetized canine hemodynamic simulator (Ex. 9)</p></header>
+<div class="card" id="deadBox" hidden style="border:2px solid var(--danger);color:var(--danger);font-weight:bold"></div>
+<div class="card"><div class="monitor-grid">
+<div class="metric-box"><div class="metric-label">Blood pressure (mmHg)</div><div class="metric-value" id="bpDisplay">120 / 80</div></div>
+<div class="metric-box"><div class="metric-label">Heart rate (bpm)</div><div class="metric-value" id="hrDisplay" style="color:var(--accent)">120</div></div></div>
+<div class="status" id="chips"></div></div>
+<div class="card"><label id="trLabel">Live trend: last 90 s (green = MAP, blue = heart rate)</label><canvas id="trend"></canvas><div class="row4"><button id="pauseBtn">⏸ Pause</button><button class="ghost" id="zoOut">− Zoom</button><button class="ghost" id="zoIn">+ Zoom</button><button class="ghost" id="liveBtn">Live ⏩</button></div><div class="hint">Drag graph sideways to go back. Pinch, mouse wheel or buttons to zoom.</div></div>
+<div class="card controls">
+<div class="form-group"><label for="speedSelect">Simulation speed</label><select id="speedSelect"><option value="1">1x (real time)</option><option value="3">3x</option><option value="5" selected>5x</option><option value="10">10x</option><option value="15">15x</option><option value="20">20x</option></select></div>
+<div class="form-group"><label for="drugSelect">Intervention</label><select id="drugSelect"></select></div>
+<div class="form-group"><label for="doseSelect">Dose level</label><select id="doseSelect"><option value="low">Low dose (0.5x)</option><option value="normal" selected>Standard dose (1x)</option><option value="high">High dose (2x)</option><option value="custom">Custom dose (type mcg/kg)</option></select><div class="form-group" id="customWrap" hidden><input id="customDose" type="number" inputmode="decimal" min="0" step="any" placeholder="Dose in mcg/kg"></div><div class="hint" id="doseHint"></div></div>
+<button id="injectBtn">Inject drug / apply stimulus</button>
+<div class="row"><button class="ghost" id="resetBtn">New animal</button><button class="ghost" id="copyBtn">Copy results</button></div>
+<button class="ghost" id="soundBtn">🔇 Heartbeat sound: Off</button></div>
+<div class="card"><label>Viva question (Next picks one on your last drug if available)</label><div id="vQ">Tap Next to start.</div><div id="vOpts" hidden></div><div class="row3"><button class="ghost" id="vHint">💡 Hint</button><button class="ghost" id="vShow">Show answer</button><button id="vNext">Next ▶</button></div></div>
+<div class="card"><label>Peak responses (first 45 s after each step)</label><div id="resultsWrap"><p class="empty">No interventions recorded yet.</p></div></div>
+<div class="card"><label>Physiological response log</label><div class="log-box" id="logBox"></div></div>
+<div class="card"><label>Ex. 9 questions: answers and simulated tracings (tap to open)</label><div id="qs"></div></div>
+</div>
+<div id="vAns" hidden></div>
+</section>
+<nav id="tabs" aria-label="Menu">
+  <a class="btn" href="index.html">← Menu</a>
+</nav>
+<script>(function(){
+
+const BASE={sys:120,dia:80,hr:120};
+const SCALE_MAX=260;
+const DOSE={low:.5,normal:1,high:2};
+const DR={adrenaline:{n:"Adrenaline",d:3},epi_beta:{n:"Adrenaline (beta dose)",d:.1,fix:1/30},norepi:{n:"Noradrenaline",d:3},iso:{n:"Isoprenaline",d:3},acetylcholine:{n:"Acetylcholine",d:5},histamine:{n:"Histamine",d:3},ephedrine:{n:"Ephedrine",d:100},phentolamine:{n:"Phentolamine",d:1000},propranolol:{n:"Propranolol",d:1000},atropine:{n:"Atropine",d:750},mepyramine:{n:"Mepyramine",d:5000},cimetidine:{n:"Cimetidine",d:5000},occlusion:{n:"Bilateral carotid occlusion (15 s)"},vagC:{n:"Central vagus stimulation"},vagP:{n:"Peripheral vagus stimulation"},vagotomy:{n:"Bilateral vagotomy"}};
+const PROT={
+p16:{t:"Row 16: Atropine 1500 then ACh 150",a:["atropine",2,"Atropine 1500"],b:["acetylcholine",2,"ACh 150 after atropine",1]},
+p17:{t:"Row 17: Propranolol 1000 then Isoprenaline 3",a:["propranolol",1,"Propranolol 1000"],b:["iso",1,"Isoprenaline 3 after propranolol"]},
+p18:{t:"Row 18: Phentolamine 1000 then Adrenaline 3",a:["phentolamine",1,"Phentolamine 1000"],b:["adrenaline",1,"Adrenaline 3 after phentolamine"]},
+p19:{t:"Row 19: Phentolamine 1000 then Noradrenaline 3",a:["phentolamine",1,"Phentolamine 1000"],b:["norepi",1,"Noradrenaline 3 after phentolamine"]},
+p20:{t:"Row 20: Mepyramine 5000 then Histamine 3",a:["mepyramine",1,"Mepyramine 5000"],b:["histamine",1,"Histamine 3 after mepyramine"]}};
+const PROT_DELAY=40;
+function satm(m){return m<=2?m:2+2*Math.log(m/2)}
+function blk(m){const P=[[0,0],[.5,.6],[1,.9],[2,.97],[10,.995]];if(m<=0)return 0;if(m>=10)return .995;for(let i=1;i<P.length;i++)if(m<=P[i][0]){const a=P[i-1],b=P[i];return a[1]+(b[1]-a[1])*(m-a[0])/(b[0]-a[0])}return .995}
+function shortLbl(s){const t=s.split(" ");return /^[\d.]+$/.test(t[1]||"")?t[0]+" "+t[1]:t[0]}
+function mk(){return{cur:{...BASE},fx:[],vag:false,atH:0,atM:0,rem:0,A:0,B:0,Af:0,Bf:0,H1:0,H2:0,S:1,t:0,q:[],tr:null,rows:[],hist:[],marks:[],hacc:0,dead:null,dShown:0,tLM:0,tLH:0,tHM:0,tHH:0}}
+let S=mk();
+const $=id=>document.getElementById(id);
+const mapOf=c=>(c.sys+2*c.dia)/3;
+const sgn=n=>(n>0?"+":"")+n;
+function logMessage(msg){const b=$("logBox"),d=document.createElement("div");d.className="log-entry";d.textContent="[t+"+Math.round(S.t)+"s] "+msg;b.appendChild(d);while(b.children.length>40)b.removeChild(b.firstChild);b.scrollTop=b.scrollHeight}
+function achFactor(s){return s.atM===0?1:(s.atM<=.5?.02:(s.atM<=1?.06:.3))}
+function baro(s){return!s.vag&&s.atM===0}
+function startTracker(s,label){finishTracker(s);s.tr={label,t:0,pre:{...s.cur},s:0,d:0,m:0,h:0}}
+function finishTracker(s){if(!s.tr)return;const t=s.tr;s.rows.push({label:t.label,s:Math.round(t.s),d:Math.round(t.d),m:Math.round(t.m),h:Math.round(t.h)});s.tr=null;renderResults()}
+function renderResults(){const w=$("resultsWrap");if(!S.rows.length){w.innerHTML='<p class="empty">No interventions recorded yet.</p>';return}
+let h="<table><tr><th>Step</th><th>SBP</th><th>DBP</th><th>MAP</th><th>HR</th></tr>";
+S.rows.forEach(r=>{const c=document.createElement("td");c.textContent=r.label;h+="<tr><td>"+c.innerHTML+"</td><td>"+sgn(r.s)+"</td><td>"+sgn(r.d)+"</td><td>"+sgn(r.m)+"</td><td>"+sgn(r.h)+"</td></tr>"});
+w.innerHTML=h+"</table>"}
+function inject(s,k,m,o){o=o||{};
+const add=(type,x)=>s.fx.push(Object.assign({type,m:satm(m),age:0,hold:0},x));
+const lv=m<=.5?"low":(m<=1?"standard":"high");
+switch(k){
+case"adrenaline":case"epi_beta":{add("epi",{rise:4,tau:25});
+if(k==="epi_beta")return"Adrenaline 0.1 mcg/kg: beta-2 vasodilation outweighs alpha, DBP and MAP fall, HR rises (beta-1).";
+let t="Adrenaline ("+lv+"): BP rises (alpha-1 vasoconstriction, beta-1 inotropy). ";
+t+=s.A>.3?"Alpha receptors are blocked: unopposed beta-2 vasodilation, BP falls (adrenaline reversal)."
+:s.B>.3?"Beta receptors are blocked: alpha pressor action is unmasked, bigger rise, reflex bradycardia."
+:baro(s)?"Baroreflex vagal slowing opposes the direct beta-1 tachycardia, so HR changes little or falls."
+:"No vagal brake (atropine or vagotomy): unopposed beta-1 tachycardia.";
+if(m<=.5&&s.A<.3&&s.B<.3)t+=" Diastolic may dip (beta-2 vasodilation).";return t}
+case"norepi":add("ne",{rise:4,tau:25});
+return s.A>.3?"Noradrenaline: alpha receptors blocked, almost no pressor response (no beta-2 effect to reverse it).":"Noradrenaline: strong alpha-1 vasoconstriction plus beta-1, big rise in SBP/DBP/MAP; baroreflex bradycardia lowers HR.";
+case"iso":add("iso",{rise:3,tau:20});
+return s.B>.3?"Isoprenaline: beta receptors blocked by propranolol, response abolished.":"Isoprenaline: beta-1 tachycardia, beta-2 vasodilation, DBP and MAP fall, pulse pressure widens.";
+case"acetylcholine":{const nic=s.atM>0?(o.vh?1.6:m>=2?1:m>=1?.3:.05):0;add("ach",{rise:1,tau:7,nic});
+if(s.atM>0)return"ACh ("+lv+"): muscarinic receptors blocked, depressor response abolished."+(nic>=1?" Nicotinic action on ganglia and adrenal medulla is unmasked: pressor response.":"");
+return"ACh ("+lv+"): brief hypotension (endothelial NO vasodilation) and bradycardia."+(s.vag?" Vagotomy does not block this because ACh acts directly on the receptors.":"")}
+case"histamine":add("h1",{rise:2,tau:10});add("h2",{rise:6,tau:40});
+return s.H1>.3?"Histamine: H1 blocked, only the delayed H2 effect remains: slow, mild hypotension with tachycardia.":"Histamine: quick H1 vasodilation (sharp fall in BP) then slower H2 vasodilation and tachycardia.";
+case"ephedrine":{const m1=satm(m),m2=m1*s.S;s.S*=.6;s.fx.push({type:"eph",m:m2,age:0,hold:0,rise:5,tau:30});
+return s.A>.3?"Ephedrine: released noradrenaline cannot act on blocked alpha receptors, pressor response abolished.":"Ephedrine ("+lv+"): indirect (releases NE) pressor response; store depletion makes repeated doses weaker (tachyphylaxis, response now "+Math.round(m2/m1*100)+"% of first)."}
+case"phentolamine":s.A=Math.max(s.A,blk(m));
+return"Phentolamine ("+lv+"): alpha-1/alpha-2 blockade. Vasodilation lowers MAP, reflex tachycardia (plus more NE release via alpha-2 block) raises HR.";
+case"propranolol":s.B=Math.max(s.B,blk(m));
+return"Propranolol ("+lv+"): beta-1/beta-2 blockade. HR falls, contractility falls, isoprenaline now ineffective.";
+case"atropine":s.atM=Math.max(s.atM,m);s.atH=Math.max(s.atH,m<=.5?25:(m<=1?40:50));
+return"Atropine ("+lv+"): muscarinic blockade. Vagal tone removed, HR rises and stays up; ACh and baroreflex slowing are now ineffective.";
+case"mepyramine":s.H1=.9;return"Mepyramine: H1 receptors blocked (little effect on baseline BP).";
+case"cimetidine":s.H2=.9;return"Cimetidine: H2 receptors blocked (little effect on baseline BP).";
+case"occlusion":add("occl",{rise:3,hold:15,tau:6});
+return"Bilateral carotid occlusion: carotid sinus pressure falls, baroreceptor firing falls, sympathetic outflow rises and vagal tone falls: MAP and HR rise until release.";
+case"vagC":add("vagC",{rise:1,hold:10,tau:2});return"Central vagus stimulation: afferent input causes a mild reflex fall in BP and HR.";
+case"vagP":add("vagP",{rise:1,hold:10,tau:3});
+return s.atM>0?"Peripheral vagus stimulation: muscarinic receptors blocked, no response.":"Peripheral vagus stimulation: efferent ACh release slows the heart (M2): bradycardia and fall in BP.";
+case"vagotomy":if(s.vag)return"Both vagi are already cut.";s.vag=true;return"Both vagi cut: neural vagal tone lost, HR rises. Receptors are intact, so ACh still works."}
+return""}
+function env(e){if(e.age<e.rise)return e.age/e.rise;if(e.age<e.rise+e.hold)return 1;return Math.exp(-(e.age-e.rise-e.hold)/e.tau)}
+function step(s,dt){
+s.t+=dt;s.fx.forEach(e=>e.age+=dt);s.fx=s.fx.filter(e=>e.age<e.rise+e.hold+e.tau*5);
+while(s.q.length&&s.t>=s.q[0].at){const j=s.q.shift();startTracker(s,j.label);s.marks.push({at:s.t,l:shortLbl(j.label)});logMessage(inject(s,j.k,j.m,j.o))}
+s.S+=(1-s.S)*(1-Math.exp(-dt/300));
+const rk=1-Math.exp(-dt/6);s.Af+=(s.A-s.Af)*rk;s.Bf+=(s.B-s.Bf)*rk;
+const al=1-s.Af,be=1-s.Bf;
+let dSys=0,dDia=0,dHR=0,rSys=0,rDia=0;
+for(const e of s.fx){const a=env(e),m=e.m;let ds=0,dd=0,dh=0,reflex=true;
+switch(e.type){
+case"epi":{const bb=Math.min(1,m/.05),f1=Math.max(m,.5*bb)*be;ds=30*m*al+20*f1;dd=40*m*al-25*bb*be;dh=40*f1;break}
+case"ne":ds=(35*al+10*be)*m;dd=40*al*m;dh=30*be*m;break;
+case"iso":ds=5*m*be;dd=-30*m*be;dh=60*m*be;break;
+case"eph":ds=(25*al+10*be)*m;dd=(25*al-4*be)*m;dh=25*be*m;break;
+case"h1":{const h=1-s.H1;ds=-35*m*h;dd=-30*m*h;break}
+case"h2":{const h=1-s.H2;ds=-15*m*h;dd=-15*m*h;dh=20*m*h;break}
+case"ach":{const f=achFactor(s);ds=-55*m*f+30*e.nic;dd=-40*m*f+25*e.nic;dh=-55*m*f+15*e.nic;break}
+case"occl":ds=35;dd=25;dh=s.vag?10:20;reflex=false;break;
+case"vagC":{const v=s.vag?0:1;ds=-10*v;dd=-8*v;dh=-10*v;reflex=false;break}
+case"vagP":{const f=achFactor(s);ds=-35*f;dd=-25*f;dh=-45*f;reflex=false;break}}
+dSys
