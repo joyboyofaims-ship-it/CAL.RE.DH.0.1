@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CAL – Frog Oesophagus (Ciliary Motility)</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--tx:#1b2330;--mu:#5d6878;--ac:#0f766e;--bd:#d9dee6;--hi:#e6f4f2}
+@media(prefers-color-scheme:dark){:root{--bg:#10151c;--card:#19212b;--tx:#e8edf3;--mu:#9aa6b5;--ac:#2dd4bf;--bd:#2c3744;--hi:#16322f}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 system-ui,sans-serif}
+#fx{max-width:560px;margin:auto;padding:12px}
+h1{font-size:18px;margin:4px 0 10px}h2{font-size:15px;margin:12px 0 6px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:10px;margin-bottom:10px}
+button{font:inherit;border:1px solid var(--bd);background:var(--card);color:var(--tx);border-radius:10px;padding:9px 10px;cursor:pointer}
+button.go{background:var(--ac);color:#fff;border-color:var(--ac)}button:disabled{opacity:.5}
+.drugs{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+canvas{width:100%;display:block;border-radius:10px;margin:6px 0}
+.st{display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;color:var(--mu);font-size:13px;margin:4px 0}
+.big{font-size:22px;font-weight:700;color:var(--ac)}
+.tw{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{border:1px solid var(--bd);padding:4px 6px;text-align:center}th{background:var(--hi)}
+textarea{width:100%;min-height:54px;font:inherit;background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-radius:8px;padding:6px}
+.ans{background:var(--hi);border-radius:8px;padding:8px;margin-top:6px;display:none}
+small{color:var(--mu)}
+</style></head><body>
+<div id="fx">
+<h1>Ex 8 · Effect of drugs on ciliary movement of frog's oesophagus</h1>
+<div class="card">
+ <canvas id="oc" width="360" height="420"></canvas>
+ <div class="st"><span id="oprep">Preparation: Ringer (control)</span><span>Frog <b id="ofrog">1</b></span></div>
+ <div class="st"><span>Stopwatch</span><span class="big" id="otime">0.0 s</span><span id="ordg">Readings: 0/3</span></div>
+ <h2>1. Instil drug on the mucosa</h2>
+ <div class="drugs" id="odrugs"></div>
+ <h2>Ready-made combinations</h2>
+ <div class="drugs" id="ocombo">
+  <button data-c="atr,ach">Atropine 0.1% → ACh 10%</button>
+  <button data-c="phy,ach">Physostigmine 10% → ACh 10%</button>
+ </div>
+ <h2>2. Measure</h2>
+ <div class="drugs"><button class="go" id="oseed">Place poppy seed ▶</button><button id="ofr">New frog</button></div>
+ <small>Time runs ~8× faster than real life. Take 3 readings per drug. For a combination, instil drug 1, then drug 2.</small>
+</div>
+<div class="card tw"><b>Observation table</b>
+ <table><thead><tr><th>Frog</th><th>Drug</th><th>R1</th><th>R2</th><th>R3</th><th>Mean (s)</th><th>Inference</th></tr></thead><tbody id="otb"></tbody></table></div>
+<div class="card"><b>Discussion questions</b> <small>(write your answer, then reveal the model answer)</small><div id="qs"></div></div>
+</div>
+
+<script>
+const $=s=>document.querySelector(s),rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const OD={rin:'Ringer',ach:'Acetylcholine 10%',phy:'Physostigmine 10%',atr:'Atropine 0.1%'};
+const COL={rin:'#9ad0f5',ach:'#f5c542',phy:'#b48cf2',atr:'#7ad69a'};
+const O={seq:[],frog:1,run:false,rd:[],base:31,t0:0,T:0,ph:0,drop:null};
+$('#odrugs').innerHTML=Object.keys(OD).map(k=>`<button data-k="${k}">${OD[k]}</button>`).join('');
+
+function oTarget(){const s=O.seq,a=s.indexOf('atr');
+ if(a>=0)return s.slice(a+1).some(d=>d==='ach'||d==='phy')?32:57;
+ if(s.includes('phy'))return s.includes('ach')?14:16;
+ return s.includes('ach')?21:31}
+const oLabel=()=>O.seq.length?O.seq.map(k=>OD[k]).join(' followed by '):'Ringer';
+O.rows=[];
+function oPrep(){$('#oprep').textContent='Preparation: '+oLabel();$('#ordg').textContent='Readings: '+O.rd.length+'/3';oTable()}
+$('#odrugs').onclick=e=>{const k=e.target.dataset.k;if(!k||O.run)return;
+ if(k==='rin')O.seq=[];else O.seq.push(k);O.rd=[];O.drop={t0:performance.now(),col:COL[k]};oPrep()};
+$('#ocombo').onclick=e=>{const c=e.target.dataset.c;if(!c||O.run)return;
+ const [a,b]=c.split(',');O.seq=[a];O.rd=[];O.drop={t0:performance.now(),col:COL[a]};oPrep();
+ setTimeout(()=>{if(O.run)return;O.seq.push(b);O.rd=[];O.drop={t0:performance.now(),col:COL[b]};oPrep()},1500)};
+$('#ofr').onclick=()=>{if(O.run)return;O.frog++;O.seq=[];O.rd=[];$('#ofrog').textContent=O.frog;oPrep()};
+$('#oseed').onclick=()=>{if(O.run)return;O.T=oTarget()+rnd(-1,1);O.t0=performance.now();O.run=true;$('#oseed').disabled=true};
+function oInfer(m){const d=m-O.base;if(!O.seq.length||Math.abs(d)<=2)return 'No change';
+ if(d<0)return m<=O.base*.5?'Greatly increased':'Increased';return 'Decreased'}
+function oDone(){O.run=false;$('#oseed').disabled=false;O.rd.push(O.T);
+ if(O.rd.length===3){const m=Math.round(O.rd.reduce((a,b)=>a+b)/3);if(!O.seq.length)O.base=m;
+  O.rows.push(`<tr><td>${O.frog}</td><td>${oLabel()}</td><td>${O.rd.join('</td><td>')}</td><td><b>${m}</b></td><td>${oInfer(m)}</td></tr>`);O.rd=[]}
+ oPrep()}
+function oTable(){let h=O.rows.join('');
+ if(O.rd.length){const r=[0,1,2].map(i=>O.rd[i]!==undefined?O.rd[i]:'…');
+  h+=`<tr style="background:var(--hi)"><td>${O.frog}</td><td>${oLabel()}</td><td>${r.join('</td><td>')}</td><td>…</td><td>…</td></tr>`}
+ $('#otb').innerHTML=h}
+
+/* ---- drawing: frog pinned on a board, mouth opened, mucosa of oesophagus exposed ---- */
+const c=$('#oc').getContext('2d'),CX=180,Y0=150,Y1=330;
+const sm=t=>t*t*(3-2*t);
+function hw(y){if(y<20)return 0;if(y<90)return 140*Math.sqrt(1-((y-90)/70)**2);
+ if(y<150)return 140+(50-140)*sm((y-90)/60);return 50-(y-150)*6/210}
+function tube(x){c.beginPath();c.moveTo(CX-hw(20)-x,20);
+ for(let y=24;y<=380;y+=4)c.lineTo(CX-hw(y)-x,y);
+ for(let y=380;y>=20;y-=4)c.lineTo(CX+hw(y)+x,y);c.closePath()}
+function pin(x,y){c.fillStyle='rgba(0,0,0,.25)';c.beginPath();c.arc(x+2,y+2,5,0,7);c.fill();
+ c.fillStyle='#9aa3ad';c.beginPath();c.arc(x,y,5,0,7);c.fill();
+ c.fillStyle='#e8edf2';c.beginPath();c.arc(x-1.5,y-1.5,1.8,0,7);c.fill()}
+function board(){c.fillStyle='#d2a977';c.fillRect(0,0,360,420);
+ for(let i=0;i<160;i++){const x=(i*97)%360,y=(i*53+i*i*7)%420;c.fillStyle=i%3?'rgba(120,80,40,.18)':'rgba(255,230,190,.25)';c.fillRect(x,y,3,2)}}
+function frogBody(){
+ c.fillStyle='#5c7a3a';c.beginPath();c.ellipse(CX,100,172,100,0,0,7);c.fill();
+ tube(16);c.fillStyle='#5c7a3a';c.fill();
+ c.fillStyle='#2f4a22';for(let i=0;i<14;i++){c.beginPath();c.arc(30+(i*61)%300,30+(i*37)%150,4+i%3,0,7);c.fill()}
+ c.fillStyle='#b86a6e';c.beginPath();c.ellipse(CX,395,66,30,0,0,7);c.fill()}
+function mucosa(ph,sp){
+ tube(0);const g=c.createLinearGradient(CX-140,0,CX+140,0);
+ g.addColorStop(0,'#c97b80');g.addColorStop(.45,'#f0b4b0');g.addColorStop(.6,'#f6c6c0');g.addColorStop(1,'#c97b80');
+ c.fillStyle=g;c.fill();c.strokeStyle='#8f4a50';c.lineWidth=2;c.stroke();
+ c.save();tube(0);c.clip();
+ c.lineWidth=2;
+ for(let k=-3;k<=3;k++){c.strokeStyle=`rgba(150,70,80,${k%2?.28:.4})`;c.beginPath();
+  for(let y=100;y<=380;y+=6){const x=CX+k*hw(y)/3.4+Math.sin(y/22+k)*3;y===100?c.moveTo(x,y):c.lineTo(x,y)}c.stroke()}
+ c.strokeStyle='rgba(255,255,255,.55)';c.lineWidth=1.3;
+ for(let y=104;y<380;y+=8)for(let u=-.9;u<=.91;u+=.225){
+  const x=CX+u*hw(y),a=Math.sin(ph*6-y*.07+u)*.9;
+  c.beginPath();c.moveTo(x,y);c.lineTo(x+Math.cos(a)*2,y+5*Math.sin(a)+2);c.stroke()}
+ c.fillStyle='rgba(255,255,255,.22)';c.beginPath();c.ellipse(CX-hw(250)*.45,250,5,120,0,0,7);c.fill();
+ c.restore()}
+function labels(){c.fillStyle='#fff';c.font='bold 11px sans-serif';c.fillText('Buccal cavity (opened)',CX-60,70);
+ c.fillText('Oesophagus – mucosa',CX-52,230);c.fillText('Stomach',CX-22,398);
+ c.setLineDash([5,3]);c.strokeStyle='#1d1d1d';c.lineWidth=2;
+ [Y0,Y1].forEach(y=>{c.beginPath();c.moveTo(CX-hw(y)-14,y);c.lineTo(CX+hw(y)+14,y);c.stroke()});c.setLineDash([]);
+ c.fillStyle='#1d1d1d';c.fillText('Start',6,Y0+4);c.fillText('Finish',6,Y1+4);
+ c.strokeStyle='#1d1d1d';c.lineWidth=1;c.beginPath();c.moveTo(34,Y0+14);c.lineTo(34,Y1-14);c.stroke();
+ c.fillText('fixed distance',8,(Y0+Y1)/2)}
+function draw(now){
+ let p=0,tm=0;if(O.run){tm=Math.min((now-O.t0)/1000*8,O.T);p=tm/O.T;$('#otime').textContent=tm.toFixed(1)+' s';
+  if(tm>=O.T){O.run=false;oDone()}}
+ const sp=31/(O.run?O.T:oTarget());O.ph+=.05*sp*(O.run?1:.4);
+ board();frogBody();mucosa(O.ph,sp);
+ if(O.drop){const d=(now-O.drop.t0)/1000;
+  if(d<.6){c.fillStyle=O.drop.col;c.beginPath();c.ellipse(CX,10+d/.6*120,5,7,0,0,7);c.fill()}
+  else if(d<3){c.save();tube(0);c.clip();c.globalAlpha=.32*(1-(d-.6)/2.4);c.fillStyle=O.drop.col;c.fillRect(0,100,360,300);c.restore()}
+  else O.drop=null}
+ labels();
+ [[22,100],[338,100],[70,30],[290,30],[CX-hw(200)-9,200],[CX+hw(200)+9,200],[CX-hw(300)-9,300],[CX+hw(300)+9,300]].forEach(a=>pin(a[0],a[1]));
+ const y=Y0+(Y1-Y0)*p;
+ if(p>0){c.strokeStyle='rgba(255,255,255,.45)';c.lineWidth=4;c.lineCap='round';c.beginPath();c.moveTo(CX,Y0);c.lineTo(CX+Math.sin(p*20)*3,y);c.stroke()}
+ const sx=CX+(p>0?Math.sin(p*20)*3:0),sy=p>0?y:Y0;
+ c.fillStyle='rgba(0,0,0,.3)';c.beginPath();c.ellipse(sx+2,sy+3,5,3,0,0,7);c.fill();
+ c.fillStyle='#1c1c24';c.beginPath();c.arc(sx,sy,5,0,7);c.fill();
+ c.fillStyle='#8a8f9c';c.beginPath();c.arc(sx-1.5,sy-1.5,1.5,0,7);c.fill();
+ requestAnimationFrame(draw)}
+requestAnimationFrame(draw);oPrep();
+
+/* ---- questions ---- */
+const Q=[
+['Why does acetylcholine decrease the travel duration of the poppy seed? Explain the mechanism.','ACh stimulates muscarinic (M3) receptors on the ciliated epithelium, increasing ciliary motility, so the seed travels faster and the time is reduced.'],
+['Why does physostigmine + acetylcholine shorten the travel time more than acetylcholine alone?','Physostigmine blocks acetylcholinesterase, so ACh activity is boosted compared with ACh alone; the seed therefore travels even faster.'],
+['Why does atropine prolong the travel time? Explain the mechanism.','Atropine is a muscarinic antagonist and blocks the M3 receptors on the cilia, reducing ciliary motility, so the travel time increases.'],
+['What happens when physostigmine alone is instilled? Explain.','Travel time decreases because physostigmine boosts endogenous ACh by inhibiting its breakdown (indirect cholinergic action).'],
+['Enumerate sites in the human body where cilia are important. Why is acetylcholine not used clinically?','Respiratory tract and fallopian tube. ACh has a very short half-life due to rapid inactivation by plasma (and tissue) cholinesterases.']];
+$('#qs').innerHTML=Q.map((q,i)=>`<div style="margin:10px 0"><b>${i+1}. ${q[0]}</b>
+<textarea placeholder="Your answer"></textarea><button onclick="this.nextElementSibling.style.display='block'">Show model answer</button><div class="ans">${q[1]}</div></div>`).join('');
+</script></body></html>
