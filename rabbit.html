@@ -3,9 +3,9 @@
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0b6e4f">
 <script>
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("sw.js");
-}
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("sw.js");
+  }
 </script><style>
 :root{--bg:#f3f5f9;--card:#fff;--text:#0f172a;--tx:#0f172a;--muted:#5b6b82;--mut:#5b6b82;--line:#d9dfeb;--bd:#d9dfeb;--accent:#4338ca;--ac:#4338ca;--on-ac:#fff;--ok:#047857;--danger:#be123c;--bad:#be123c;--st:#e6ebf5;--lid:#475569;color-scheme:light dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0b1020;--card:#141b2e;--text:#e8ecf5;--tx:#e8ecf5;--muted:#94a3b8;--mut:#94a3b8;--line:#26304a;--bd:#26304a;--accent:#818cf8;--ac:#818cf8;--on-ac:#0b1020;--ok:#34d399;--danger:#fb7185;--bad:#fb7185;--st:#070b17;--lid:#334155} }
@@ -13,6 +13,62 @@ if ("serviceWorker" in navigator) {
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 [hidden]{display:none!important}
+#dog *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-tap-highlight-color:transparent}
+#dog{background:var(--bg);color:var(--text);padding:16px;padding-top:calc(16px + env(safe-area-inset-top,0px));padding-bottom:calc(16px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;align-items:center;min-height:100vh}
+#dog .container{width:100%;max-width:500px;display:flex;flex-direction:column;gap:16px}
+#dog header h1{font-size:1.25rem;color:var(--accent);margin-bottom:4px}
+#dog header p{font-size:.85rem;color:var(--muted)}
+#dog .card{background:var(--card);border-radius:12px;padding:16px}
+#dog .monitor-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+#dog .metric-box{background:rgba(15,23,42,.6);padding:10px;border-radius:8px;text-align:center;border:1px solid rgba(56,189,248,.1)}
+#dog .metric-label{font-size:.72rem;color:var(--muted)}
+#dog .metric-value{font-size:1.4rem;font-weight:bold;color:var(--ok);margin-top:4px}
+#dog canvas{width:100%;height:300px;background:#000;border-radius:8px;display:block;margin-top:8px}
+#dog .status{display:flex;flex-wrap:wrap;gap:8px;font-size:.8rem}
+#dog .chip{padding:4px 10px;border-radius:999px;border:1px solid var(--danger);color:var(--danger)}
+#dog .controls{display:flex;flex-direction:column;gap:12px}
+#dog .form-group{display:flex;flex-direction:column;gap:6px}
+#dog label{font-size:.85rem;color:var(--muted)}
+#dog input[type=number]{width:100%;padding:12px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-size:16px}
+#dog select{width:100%;padding:12px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-size:16px}
+#dog button{background:var(--accent);color:var(--bg);border:none;padding:14px;border-radius:8px;font-weight:bold;font-size:1rem;cursor:pointer;min-height:48px}
+#dog button:active{opacity:.8}
+#dog .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+#dog button.ghost{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+#dog .log-box{background:var(--bg);border-radius:8px;padding:10px;font-size:.85rem;color:var(--muted);height:140px;overflow-y:auto;border:1px solid var(--line);margin-top:6px}
+#dog .log-entry{margin-bottom:6px;line-height:1.35}
+#dog table{width:100%;border-collapse:collapse;font-size:.85rem;margin-top:6px}
+#dog th,#dog td{padding:6px 4px;text-align:right;border-bottom:1px solid var(--line)}
+#dog th:first-child,#dog td:first-child{text-align:left}
+#dog th{color:var(--muted)}
+#dog .empty,#dog .hint{color:var(--muted);font-size:.85rem;margin-top:6px}
+#dog canvas#trend{touch-action:pan-y;cursor:grab}
+#dog .row4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}
+#dog .row4 button{padding:10px 4px;font-size:.85rem;min-height:44px}
+#dog canvas.g{height:300px;min-width:640px;margin:0}
+#dog .gw{overflow-x:auto;margin:8px 0;border-radius:8px}
+#dog details{border-bottom:1px solid var(--line);padding:8px 0}
+#dog summary{cursor:pointer;color:var(--accent);font-size:.92rem;line-height:1.4;padding:6px 0}
+#dog .qb{font-size:.85rem;line-height:1.5}
+#dog .qb p{color:var(--muted)}
+#dog .qb ul{margin:4px 0 8px 18px}
+#dog .qb li{margin-bottom:4px}
+#dog .qb b{color:var(--accent)}
+#dog .qb table td,#dog .qb table th{text-align:left;vertical-align:top;font-size:.78rem}
+#dog .row3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+#dog .row3 button{padding:10px 4px;font-size:.85rem;min-height:44px}
+#dog #vQ{font-size:.95rem;line-height:1.45;font-weight:600;margin:6px 0}
+#dog #vOpts{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+#dog button.vo{background:transparent;color:var(--text);border:1px solid var(--line);text-align:left;font-weight:600;font-size:.9rem;padding:12px;min-height:44px}
+#dog button.vo.right{border:2px solid var(--ok);color:var(--ok)}
+#dog button.vo.wrong{border:2px solid var(--danger);color:var(--danger)}
+#vAns{position:fixed;left:8px;right:8px;bottom:calc(68px + env(safe-area-inset-bottom,0px));z-index:45;background:var(--card);border:2px solid var(--ok);border-radius:12px;padding:10px 12px;color:var(--ok);font-weight:700;font-size:.9rem;line-height:1.4;max-height:32vh;overflow:auto}
+#vAns .x{float:right;background:none;border:0;color:var(--ok);font-size:1.1rem;padding:0 4px;min-height:0;font-weight:700}
+@keyframes dshake{0%,100%{transform:translate(0,0)}10%{transform:translate(-9px,4px)}20%{transform:translate(10px,-5px)}30%{transform:translate(-8px,-4px)}40%{transform:translate(8px,5px)}50%{transform:translate(-6px,3px)}60%{transform:translate(5px,-3px)}70%{transform:translate(-3px,2px)}80%{transform:translate(2px,-2px)}}
+@keyframes dflash{0%{background:rgba(255,0,40,.9)}35%{background:rgba(110,0,10,.85)}100%{background:rgba(0,0,0,.82)}}
+@keyframes dpulse{0%,100%{text-shadow:0 0 8px #f00}50%{text-shadow:0 0 26px #f00,0 0 46px #f00}}
+#deadOv.go{animation:dflash 1.3s ease-out forwards}
+#deadOv.go #deadOvT{animation:dshake .7s linear 2,dpulse 1s ease-in-out infinite}
 #rabbit *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 #rabbit{margin:0;background:var(--bg);color:var(--tx);font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
 #rabbit .w{max-width:640px;margin:0 auto;padding:12px;display:flex;flex-direction:column;gap:10px}
@@ -61,7 +117,9 @@ body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 system-ui,-a
 #rabbit details:last-child{border:0}
 #rabbit summary{font-weight:600;cursor:pointer}
 #rabbit details p{margin:6px 0 0;color:var(--mut)}
-#rabbit{padding:14px 14px 96px;min-height:0;background:var(--bg);color:var(--text)}
+[hidden]{display:none!important}
+#dog,#rabbit{padding:14px 14px 96px;min-height:0;background:var(--bg);color:var(--text)}
+#dog .metric-box{background:var(--bg);border:1px solid var(--line)}
 #tabs{position:fixed;left:0;right:0;bottom:0;display:flex;gap:6px;padding:8px 12px calc(8px + env(safe-area-inset-bottom,0px));background:var(--card);border-top:1px solid var(--line);z-index:40;overflow-x:auto;-webkit-overflow-scrolling:touch}
 #tabs button, #tabs a{flex:1 0 auto;border:0;border-radius:12px;padding:11px 10px;font:600 13px system-ui,sans-serif;background:transparent;color:var(--muted);white-space:nowrap;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box}
 #tabs button[aria-selected="true"]{background:var(--accent);color:var(--on-ac)}
@@ -69,6 +127,7 @@ body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 system-ui,-a
 #err{position:fixed;top:0;left:0;right:0;z-index:99;background:#be123c;color:#fff;padding:10px;font-size:13px}
 </style></head><body>
 <div id="err" hidden></div>
+<div id="deadOv" hidden style="position:fixed;top:0;left:0;right:0;bottom:0;z-index:98;display:flex;align-items:center;justify-content:center;text-align:center;background:rgba(0,0,0,.75);color:#ff2d4d;font-weight:800;padding:20px;pointer-events:none"><div id="deadOvT"></div></div>
 <script>window.onerror=function(m,u,l){var e=document.getElementById("err");e.hidden=false;e.textContent="Script error: "+m+" (line "+l+")"};</script>
 <section id="rabbit">
 <div class="w">
@@ -266,4 +325,6 @@ ru.addEventListener('pointerup',()=>{
 });
 tween('R',22.5,1);
 
-Object.assign(window,{mode:mode,instill:instill,newExam:newExam,togRuler:togRuler,reset:reset});window.ra
+Object.assign(window,{mode:mode,instill:instill,newExam:newExam,togRuler:togRuler,reset:reset});window.rabbitShown=function(){if(!ru.hidden)buildRuler()};
+})();</script>
+</body></html>
