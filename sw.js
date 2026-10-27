@@ -1,4 +1,4 @@
-const CACHE = "pcal-v3";
+const CACHE = "pcal-v4";
 
 const FILES = [
   "./",
