@@ -31,8 +31,9 @@ small{color:var(--mu)}
  <div class="drugs" id="odrugs"></div>
  <h2>Ready-made combinations</h2>
  <div class="drugs" id="ocombo">
-  <button data-c="atr,ach">Atropine 0.1% → ACh 10%</button>
   <button data-c="phy,ach">Physostigmine 10% → ACh 10%</button>
+  <button data-c="atr,ach">Atropine 0.1% → ACh 10%</button>
+  <button data-c="atr,ach,phy" style="grid-column:1/-1">Atropine 0.1% → ACh 10% → Physostigmine 10%</button>
  </div>
  <h2>2. Measure</h2>
  <div class="drugs"><button class="go" id="oseed">Place poppy seed ▶</button><button id="ofr">New frog</button></div>
@@ -40,38 +41,50 @@ small{color:var(--mu)}
 </div>
 <div class="card tw"><b>Observation table</b>
  <table><thead><tr><th>Frog</th><th>Drug</th><th>R1</th><th>R2</th><th>R3</th><th>Mean (s)</th><th>Inference</th></tr></thead><tbody id="otb"></tbody></table></div>
+<div class="card"><b>Conclusion</b><div>ACh and physostigmine shorten transit time;<br>atropine lengthens it.</div></div>
 <div class="card"><b>Discussion questions</b> <small>(write your answer, then reveal the model answer)</small><div id="qs"></div></div>
 </div>
 
 <script>
 const $=s=>document.querySelector(s),rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
-const OD={rin:'Ringer',ach:'Acetylcholine 10%',phy:'Physostigmine 10%',atr:'Atropine 0.1%'};
+const OD={rin:'Ringer / washout (reset)',ach:'Acetylcholine 10%',phy:'Physostigmine 10%',atr:'Atropine 0.1%'};
 const COL={rin:'#9ad0f5',ach:'#f5c542',phy:'#b48cf2',atr:'#7ad69a'};
-const O={seq:[],frog:1,run:false,rd:[],base:31,t0:0,T:0,ph:0,drop:null};
+const O={seq:[],frog:1,run:false,rd:[],base:32,nom:32,pend:null,as:false,c:null,t0:0,T:0,ph:0,drop:null};
 $('#odrugs').innerHTML=Object.keys(OD).map(k=>`<button data-k="${k}">${OD[k]}</button>`).join('');
 
-function oTarget(){const s=O.seq,a=s.indexOf('atr');
- if(a>=0)return s.slice(a+1).some(d=>d==='ach'||d==='phy')?32:57;
- if(s.includes('phy'))return s.includes('ach')?14:16;
- return s.includes('ach')?21:31}
+const agon=d=>d==='ach'||d==='phy';
+const REC={'':32,'ach':21,'phy':16,'atr':57,'phy,ach':14,'atr,ach':32,'atr,phy':32};
+function oCase(){const s=O.seq,k=s.join(',');
+ if(k in REC)return{t:REC[k],a:false};
+ /* ASSUMPTION: combination not in my record - direction only; t is only the animation speed (reused recorded value) */
+ const a=s.lastIndexOf('atr');
+ if(a>=0)return s.slice(a+1).some(agon)?{t:32,a:true,dir:'No change (blocked by atropine)'}:{t:57,a:true,dir:s.some(agon)?'Decreased (agonist effect antagonised by atropine)':'Decreased'};
+ return{t:s.includes('phy')?(s.includes('ach')?14:16):21,a:true,dir:'Increased'}}
+const oTarget=()=>oCase().t;
+function cancelPend(){if(O.pend){clearTimeout(O.pend);O.pend=null;if(!O.run)$('#oseed').disabled=false}}
 const oLabel=()=>O.seq.length?O.seq.map(k=>OD[k]).join(' followed by '):'Ringer';
 O.rows=[];
 function oPrep(){$('#oprep').textContent='Preparation: '+oLabel();$('#ordg').textContent='Readings: '+O.rd.length+'/3';oTable()}
-$('#odrugs').onclick=e=>{const k=e.target.dataset.k;if(!k||O.run)return;
+$('#odrugs').onclick=e=>{const k=e.target.dataset.k;if(!k||O.run)return;cancelPend();
  if(k==='rin')O.seq=[];else O.seq.push(k);O.rd=[];O.drop={t0:performance.now(),col:COL[k]};oPrep()};
-$('#ocombo').onclick=e=>{const c=e.target.dataset.c;if(!c||O.run)return;
- const [a,b]=c.split(',');O.seq=[a];O.rd=[];O.drop={t0:performance.now(),col:COL[a]};oPrep();
- setTimeout(()=>{if(O.run)return;O.seq.push(b);O.rd=[];O.drop={t0:performance.now(),col:COL[b]};oPrep()},1500)};
-$('#ofr').onclick=()=>{if(O.run)return;O.frog++;O.seq=[];O.rd=[];$('#ofrog').textContent=O.frog;oPrep()};
-$('#oseed').onclick=()=>{if(O.run)return;O.T=oTarget()+rnd(-1,1);O.t0=performance.now();O.run=true;$('#oseed').disabled=true};
-function oInfer(m){const d=m-O.base;if(!O.seq.length||Math.abs(d)<=2)return 'No change';
- if(d<0)return m<=O.base*.5?'Greatly increased':'Increased';return 'Decreased'}
+$('#ocombo').onclick=e=>{const c=e.target.dataset.c;if(!c||O.run)return;cancelPend();
+ const q=c.split(',');O.seq=[q[0]];O.rd=[];O.drop={t0:performance.now(),col:COL[q[0]]};oPrep();
+ const step=n=>{if(n>=q.length){O.pend=null;$('#oseed').disabled=false;return}
+  O.pend=setTimeout(()=>{O.seq.push(q[n]);O.rd=[];O.drop={t0:performance.now(),col:COL[q[n]]};oPrep();step(n+1)},1500)};
+ $('#oseed').disabled=true;step(1)};
+$('#ofr').onclick=()=>{if(O.run)return;cancelPend();O.frog++;O.seq=[];O.rd=[];O.base=O.nom;O.drop=null;$('#ofrog').textContent=O.frog;oPrep()};
+$('#oseed').onclick=()=>{if(O.run||O.pend)return;O.c=oCase();O.as=O.c.a;O.T=O.c.t+rnd(-1,1);O.t0=performance.now();O.run=true;$('#oseed').disabled=true};
+function oInfer(m,c){if(c.a)return 'ASSUMPTION: '+c.dir+' (direction only, no recorded value)';
+ if(!O.seq.length)return 'No change';
+ const d=m-O.base;let r;
+ if(Math.abs(d)<=2)r='No change';else if(d<0)r=c.t<O.nom*.5?'Greatly increased':'Increased';else r='Decreased';
+ const a=O.seq.indexOf('atr');if(a>=0&&O.seq.slice(a+1).some(agon))r+=' – blocked by atropine';return r}
 function oDone(){O.run=false;$('#oseed').disabled=false;O.rd.push(O.T);
  if(O.rd.length===3){const m=Math.round(O.rd.reduce((a,b)=>a+b)/3);if(!O.seq.length)O.base=m;
-  O.rows.push(`<tr><td>${O.frog}</td><td>${oLabel()}</td><td>${O.rd.join('</td><td>')}</td><td><b>${m}</b></td><td>${oInfer(m)}</td></tr>`);O.rd=[]}
+  O.rows.push(`<tr><td>${O.frog}</td><td>${oLabel()}</td><td>${(O.as?['—','—','—']:O.rd).join('</td><td>')}</td><td><b>${O.as?'—':m}</b></td><td>${oInfer(m,O.c)}</td></tr>`);O.rd=[];if(O.as)$('#otime').textContent='—'}
  oPrep()}
 function oTable(){let h=O.rows.join('');
- if(O.rd.length){const r=[0,1,2].map(i=>O.rd[i]!==undefined?O.rd[i]:'…');
+ if(O.rd.length){const r=[0,1,2].map(i=>O.rd[i]!==undefined?(O.as?'✓':O.rd[i]):'…');
   h+=`<tr style="background:var(--hi)"><td>${O.frog}</td><td>${oLabel()}</td><td>${r.join('</td><td>')}</td><td>…</td><td>…</td></tr>`}
  $('#otb').innerHTML=h}
 
@@ -115,7 +128,7 @@ function labels(){c.fillStyle='#fff';c.font='bold 11px sans-serif';c.fillText('B
  c.strokeStyle='#1d1d1d';c.lineWidth=1;c.beginPath();c.moveTo(34,Y0+14);c.lineTo(34,Y1-14);c.stroke();
  c.fillText('fixed distance',8,(Y0+Y1)/2)}
 function draw(now){
- let p=0,tm=0;if(O.run){tm=Math.min((now-O.t0)/1000*8,O.T);p=tm/O.T;$('#otime').textContent=tm.toFixed(1)+' s';
+ let p=0,tm=0;if(O.run){tm=Math.min((now-O.t0)/1000*8,O.T);p=tm/O.T;$('#otime').textContent=O.as?'…':tm.toFixed(1)+' s';
   if(tm>=O.T){O.run=false;oDone()}}
  const sp=31/(O.run?O.T:oTarget());O.ph+=.05*sp*(O.run?1:.4);
  board();frogBody();mucosa(O.ph,sp);
