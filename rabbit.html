@@ -200,7 +200,7 @@ body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 system-ui,-a
 <details><summary>9. Which mydriatic is dangerous in narrow-angle glaucoma?</summary><p>Atropine and other mydriatics. A dilated pupil crowds the angle and blocks aqueous outflow.</p></details>
 <details><summary>10. What is cycloplegia?</summary><p>Paralysis of accommodation from ciliary muscle block. Atropine causes it and lasts about 7 to 10 days.</p></details>
 <details><summary>11. Adrenaline effect on IOP?</summary><p>Lowers it by reducing aqueous production and increasing uveoscleral outflow. It also dilates the pupil.</p></details>
-<details><summary>12. Uses of physostigmine (miotic) in the eye?</summary><p>Open-angle glaucoma, and reversing the effect of mydriatics.</p></details>
+<details><summary>12. Uses of physostigmine (miotic) in the eye?</summary><p>Glaucoma (open and closed angle), and to counteract the peripheral and central antimuscarinic effects of atropine in acute belladonna poisoning.</p></details>
 </div>
 </div>
 <div id="ghost" hidden></div>
@@ -212,12 +212,13 @@ body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 system-ui,-a
 <script>(function(){
 
 const D={
-saline:{n:'Normal saline 0.9%',mm:4.5,lr:1,cr:1,iop:'Normal (~15)',m:'Inert control.'},
-physostigmine:{n:'Physostigmine 0.5%',mm:2,lr:1,cr:1,iop:'Decreased (~10)',m:'Cholinesterase inhibitor: ACh builds up, sphincter contracts (miosis), outflow improves.'},
-atropine:{n:'Atropine 1%',mm:8,lr:0,cr:1,iop:'Increased (~22)',m:'Muscarinic blocker: sphincter paralysed, mydriasis, no light reflex.'},
-ephedrine:{n:'Ephedrine 0.5%',mm:6.5,lr:1,cr:1,iop:'Normal / slight rise (~16)',m:'Indirect α1 action on radial muscle: mydriasis, light reflex kept.'},
-adrenaline:{n:'Adrenaline 0.1%',mm:6,lr:1,cr:1,iop:'Decreased (~11)',m:'Direct α agonist: mydriasis, light reflex kept, IOP falls.'},
-lignocaine:{n:'Lignocaine 1%',mm:4.5,lr:1,cr:0,iop:'Normal (~15)',m:'Na⁺ channel block in corneal nerves: corneal reflex lost, pupil normal.'}
+saline:{n:'Normal saline 0.9%',mm:6,lr:1,cr:1,iop:'Normal (~15)',m:'Inert control.'},
+physostigmine:{n:'Physostigmine 0.5%',mm:1,lr:1,cr:1,iop:'Decreased (~10)',m:'Cholinesterase inhibitor: ACh builds up, sphincter contracts (miosis), outflow improves.'},
+atropine:{n:'Atropine 1%',mm:10,lr:0,cr:1,iop:'Increased (~22)',m:'Muscarinic blocker: sphincter paralysed, mydriasis, no light reflex.'},
+ephedrine:{n:'Ephedrine 0.5%',mm:8,lr:1,cr:1,iop:'Normal / slight rise (~16)',m:'Indirect α1 action on radial muscle: mydriasis, light reflex kept.'},
+adrenaline:{n:'Adrenaline 0.1%',mm:7.5,lr:1,cr:1,iop:'Decreased (~11)',m:'Direct α agonist: mydriasis, light reflex kept, IOP falls.'},
+lignocaine:{n:'Lignocaine 1%',mm:6,lr:1,cr:0,iop:'Normal (~15)',m:'Na⁺ channel block in corneal nerves: corneal reflex lost, pupil normal.'},
+phenylephrine:{n:'Phenylephrine 10%',mm:10,lr:1,cr:1,iop:'Normal (~15)',m:'Direct, selective α1 agonist (non-catecholamine): radial muscle contracts, mydriasis, light and corneal reflexes intact.'}
 };
 const $=id=>document.getElementById(id);
 /* realistic rabbit eye artwork v2 */
@@ -260,7 +261,7 @@ const $=id=>document.getElementById(id);
   +fibers(cx)
   +'<circle cx="'+cx+'" cy="'+CY+'" r="56" fill="none" stroke="#e0a460" stroke-opacity=".22" stroke-width="3.5"/>'
   +'<circle cx="'+cx+'" cy="'+CY+'" r="94" fill="none" stroke="#0f0602" stroke-width="7" stroke-opacity=".85"/>'
-  +'<circle id="p'+k+'" cx="'+cx+'" cy="'+CY+'" r="22.5" fill="#010101" stroke="#d08a45" stroke-opacity=".5" stroke-width="5" paint-order="stroke" filter="url(#soft)"/>'
+  +'<circle id="p'+k+'" cx="'+cx+'" cy="'+CY+'" r="30" fill="#010101" stroke="#d08a45" stroke-opacity=".5" stroke-width="5" paint-order="stroke" filter="url(#soft)"/>'
   +'<ellipse cx="'+ci+'" cy="'+(CY+8)+'" rx="15" ry="23" fill="url(#car)" opacity=".75"/>'
   +'<ellipse cx="'+cx+'" cy="'+CY+'" rx="118" ry="98" fill="url(#sheen)"/>'
   +'<path d="M'+(cx-70)+' '+(CY+58)+'A88 88 0 0 0 '+(cx+66)+' '+(CY+62)+'" stroke="#fff" stroke-opacity=".16" stroke-width="5" fill="none" stroke-linecap="round"/>'
@@ -300,7 +301,7 @@ const $=id=>document.getElementById(id);
 })();
 
 let dg={L:'saline',R:'saline'},md='p',unk=null;
-const cur={L:22.5,R:22.5},tw={L:0,R:0};
+const cur={L:30,R:30},tw={L:0,R:0};
 const sel=$('sel');
 Object.keys(D).forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=D[k].n;sel.appendChild(o)});
 function drug(k){return D[dg[k]]}
@@ -358,16 +359,16 @@ function mode(m){
  if(m==='p'){reset()}else{newExam()}
 }
 function newExam(){
- const ks=['physostigmine','atropine','ephedrine','adrenaline','lignocaine'];
+ const ks=['physostigmine','atropine','ephedrine','adrenaline','lignocaine','phenylephrine'];
  unk=ks[Math.floor(Math.random()*ks.length)];dg={L:'saline',R:unk};labels();
  $('smp').textContent='Unknown sample #'+(100+Math.floor(Math.random()*899));
- $('fb').hidden=true;clearAll();tween('L',22.5);tween('R',base('R'),900);
+ $('fb').hidden=true;clearAll();tween('L',30);tween('R',base('R'),900);
  say('Unknown drug instilled in the right eye. Use the tools to identify it.');
  buildOpts();
 }
 function buildOpts(){
  const o=$('opts');o.innerHTML='';
- ['physostigmine','atropine','ephedrine','adrenaline','lignocaine'].forEach((k,i)=>{
+ ['physostigmine','atropine','ephedrine','adrenaline','lignocaine','phenylephrine'].forEach((k,i)=>{
   const b=document.createElement('button');b.textContent=String.fromCharCode(65+i)+'. '+D[k].n;b.onclick=()=>answer(k);o.appendChild(b)});
 }
 function answer(k){
@@ -377,7 +378,7 @@ function answer(k){
 }
 function reset(){
  if(md==='p'){dg={L:'saline',R:'saline'};sel.value='saline'}labels();
- clearAll();tween('L',22.5);tween('R',base('R'));
+ clearAll();tween('L',30);tween('R',base('R'));
  say('Both eyes reset to saline. Pick an eye and a drug, instill, then test.');
 }
 
@@ -392,7 +393,7 @@ function eyeAt(x,y){
 function enter(t,k){
  const d=drug(k),s=(k==='L'?'Left':'Right')+(md==='e'?'':' ('+D[dg[k]].n.split(' ')[0]+')');
  if(t==='torch'){$('g'+k).setAttribute('opacity',1);
-  if(d.lr){tween(k,Math.max(8,base(k)-14),250);rec(k,1,'Present (+)','ok');say('<b>Light reflex, '+s+':</b> pupil constricts. Present (+)')}
+  if(d.lr){tween(k,Math.min(base(k),Math.max(8,base(k)-14)),250);rec(k,1,'Present (+)','ok');say('<b>Light reflex, '+s+':</b> pupil constricts. Present (+)')}
   else{rec(k,1,'Absent (−)','bad');say('<b>Light reflex, '+s+':</b> no response. Absent (−)')}}
  if(t==='cotton'){
   if(d.cr){const l=$('l'+k);l.classList.remove('bl');void l.getBoundingClientRect();l.classList.add('bl');rec(k,2,'Present (+)','ok');say('<b>Corneal reflex, '+s+':</b> eye blinks. Present (+)')}
@@ -439,9 +440,9 @@ ru.addEventListener('pointermove',e=>{if(!rd)return;const s=st.getBoundingClient
 ru.addEventListener('pointerup',()=>{
  rd=null;const r=ru.getBoundingClientRect(),cx=(r.left+r.right)/2;
  for(const k of ['L','R']){const e=$('e'+k).getBoundingClientRect();
-  if(cx>e.left&&cx<e.right){const mm=drug(k).mm;rec(k,0,mm+' mm');rdo('⌀ '+mm+' mm');say('<b>Pupil, '+(k==='L'?'left':'right')+':</b> '+mm+' mm'+(mm<3?' (miosis)':mm>5.5?' (mydriasis)':' (normal)'))}}
+  if(cx>e.left&&cx<e.right){const mm=drug(k).mm;rec(k,0,mm+' mm');rdo('⌀ '+mm+' mm');say('<b>Pupil, '+(k==='L'?'left':'right')+':</b> '+mm+' mm'+(mm<=D.saline.mm-1?' (miosis)':mm>=D.saline.mm+1?' (mydriasis)':' (normal)'))}}
 });
-tween('R',22.5,1);
+tween('R',30,1);
 
 Object.assign(window,{mode:mode,instill:instill,newExam:newExam,togRuler:togRuler,reset:reset});window.rabbitShown=function(){if(!ru.hidden)buildRuler()};
 })();</script>
