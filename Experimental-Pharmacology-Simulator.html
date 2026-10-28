@@ -1,0 +1,934 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Interactive seven-experiment teaching simulator for experimental pharmacology.">
+<title>PharmTrace — Experimental Pharmacology Simulator</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='16' fill='%23282828'/%3E%3Cpath d='M4 17h6l2-8 4 15 4-13 3 6h5' fill='none' stroke='%2300A0E6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<style>
+:root{
+  --p-cyan:oklch(0.63 0.15 230);
+  --p-cyan-dark:oklch(0.48 0.13 232);
+  --p-yellow:oklch(0.84 0.17 95);
+  --p-ink:oklch(0.24 0.02 260);
+  --p-muted:oklch(0.46 0.02 260);
+  --p-line:oklch(0.88 0.01 240);
+  --p-paper:oklch(0.995 0.002 240);
+  --p-wash:oklch(0.975 0.004 240);
+  --p-bluewash:oklch(0.97 0.018 230);
+  --surface:var(--p-paper);
+  --surface-alt:var(--p-wash);
+  --text:var(--p-ink);
+  --text-muted:var(--p-muted);
+  --accent:var(--p-cyan);
+  --accent-dark:var(--p-cyan-dark);
+  --protocol:var(--p-yellow);
+  --border:var(--p-line);
+  --focus:var(--p-cyan-dark);
+  --radius:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth}
+body{min-height:100dvh;font:16px/1.55 "Trebuchet MS",Arial,sans-serif;color:var(--text);background:var(--surface-alt);-webkit-font-smoothing:antialiased}
+button,input,select{font:inherit}
+button{cursor:pointer}
+button:disabled{cursor:not-allowed;opacity:.5}
+button,a,input,select,summary{outline:none}
+:focus-visible{outline:3px solid var(--focus);outline-offset:3px}
+button{min-height:44px}
+svg{display:block}
+.mono{font-family:Consolas,"Courier New",monospace}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:68px;padding:10px 16px;background:var(--surface);border-bottom:1px solid var(--border)}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.brand-mark{display:grid;place-items:center;width:42px;height:42px;flex:0 0 auto;border:1px solid var(--text);border-radius:50%;color:var(--accent-dark)}
+.brand-name{font-size:20px;line-height:1.1;letter-spacing:-.03em}
+.brand-sub{display:block;margin-top:4px;font:11px/1.2 Consolas,"Courier New",monospace;letter-spacing:.09em;text-transform:uppercase;color:var(--text-muted)}
+.top-actions{display:flex;align-items:center;gap:8px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:9px 13px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font-weight:700;line-height:1.2;transition:background-color .16s ease,border-color .16s ease,transform .16s ease}
+.btn:hover{background:var(--surface-alt);border-color:var(--text-muted)}
+.btn:active{transform:translateY(1px)}
+.btn-small{font-size:13px;padding:8px 10px}
+.btn-icon{width:44px;padding:0}
+.top-status{display:none;font:12px Consolas,"Courier New",monospace;color:var(--text-muted)}
+.status-dot{display:inline-block;width:7px;height:7px;margin-right:6px;border-radius:50%;background:var(--accent)}
+.app-shell{display:grid;grid-template-columns:minmax(0,1fr);gap:0;max-width:1800px;margin:0 auto}
+.sidebar,.workspace,.control-panel{min-width:0}
+.sidebar{background:var(--surface);border-bottom:1px solid var(--border)}
+.side-heading{display:flex;align-items:center;justify-content:space-between;padding:16px 16px 8px}
+.section-label{font:700 11px/1.2 Consolas,"Courier New",monospace;letter-spacing:.13em;text-transform:uppercase;color:var(--text-muted)}
+.experiment-nav{display:flex;gap:8px;overflow-x:auto;padding:8px 12px 14px;scrollbar-width:thin}
+.experiment-btn{display:grid;grid-template-columns:34px minmax(170px,1fr);gap:10px;align-items:center;min-height:64px;padding:10px;text-align:left;border:1px solid var(--border);border-radius:7px;background:var(--surface);color:var(--text);transition:background-color .16s ease,border-color .16s ease}
+.experiment-btn:hover{background:var(--p-bluewash);border-color:var(--accent)}
+.experiment-btn[aria-current="true"]{background:var(--p-bluewash);border-color:var(--accent-dark);box-shadow:inset 0 0 0 1px var(--accent-dark)}
+.exp-number{display:grid;place-items:center;width:32px;height:32px;border:1px solid var(--border);border-radius:50%;font:700 13px Consolas,"Courier New",monospace}
+.experiment-btn[aria-current="true"] .exp-number{background:var(--accent-dark);border-color:var(--accent-dark);color:var(--surface)}
+.exp-nav-title{display:block;font-size:13px;font-weight:700;line-height:1.25}
+.exp-nav-meta{display:block;margin-top:3px;font:11px Consolas,"Courier New",monospace;color:var(--text-muted)}
+.workspace{padding:20px 14px 32px;background:var(--surface-alt)}
+.exp-header{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:16px}
+.exp-heading{max-width:75ch}
+.eyebrow{margin-bottom:7px;font:700 11px Consolas,"Courier New",monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--accent-dark)}
+h1{font-size:clamp(24px,3vw,36px);line-height:1.12;letter-spacing:-.035em;text-wrap:balance}
+.exp-objective{margin-top:9px;max-width:72ch;color:var(--text-muted);font-size:15px}
+.prep-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.tag{display:inline-flex;align-items:center;min-height:28px;padding:4px 8px;border:1px solid var(--border);border-radius:4px;background:var(--surface);font:12px Consolas,"Courier New",monospace;color:var(--text-muted)}
+.protocol-btn{border-color:var(--text);background:var(--protocol);color:var(--text);white-space:nowrap}
+.protocol-btn:hover{background:var(--protocol);border-color:var(--accent-dark)}
+.protocol-btn .arrow-circle{display:grid;place-items:center;width:25px;height:25px;border-radius:50%;background:var(--text);color:var(--protocol);transition:transform .18s ease}
+.protocol-btn:hover .arrow-circle{transform:translateX(3px)}
+.trace-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.trace-toolbar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;border-bottom:1px solid var(--border)}
+.trace-title{font:700 12px Consolas,"Courier New",monospace;letter-spacing:.1em;text-transform:uppercase}
+.trace-actions{display:flex;flex-wrap:wrap;align-items:center;gap:7px}
+.toggle-btn[aria-pressed="true"]{background:var(--p-bluewash);border-color:var(--accent-dark);color:var(--accent-dark)}
+.speed-select{min-height:44px;padding:7px 28px 7px 9px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text)}
+.canvas-wrap{position:relative;padding:4px 6px 0}
+#mainTrace{display:block;width:100%;height:330px}
+.trace-empty{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;padding:30px;text-align:center;color:var(--text-muted);font-size:14px}
+.trace-empty.hidden{display:none}
+.trace-footer{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;padding:10px 14px;border-top:1px solid var(--border);font:12px Consolas,"Courier New",monospace;color:var(--text-muted)}
+.legend{display:flex;flex-wrap:wrap;gap:14px}
+.legend-item{display:inline-flex;align-items:center;gap:6px}
+.legend-line{width:22px;height:2px;background:var(--text)}
+.legend-line.ref{height:0;background:none;border-top:2px dashed var(--accent-dark)}
+.event-log{padding:12px 14px 14px;border-top:1px solid var(--border)}
+.event-log-header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:9px}
+.event-chips{display:flex;flex-wrap:wrap;gap:7px}
+.event-chip{display:inline-flex;align-items:center;gap:7px;min-height:40px;padding:7px 9px;border:1px solid var(--border);border-radius:5px;background:var(--surface);text-align:left;font-size:12px;color:var(--text)}
+.event-chip:hover,.event-chip[aria-pressed="true"]{border-color:var(--accent-dark);background:var(--p-bluewash)}
+.event-chip .marker{font:700 11px Consolas,"Courier New",monospace;color:var(--accent-dark)}
+.event-empty{font-size:13px;color:var(--text-muted)}
+.observation-strip{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;margin:14px 0;padding:14px 16px;background:var(--text);color:var(--surface);border-radius:var(--radius)}
+.observation-label{font:700 11px Consolas,"Courier New",monospace;letter-spacing:.11em;text-transform:uppercase;color:var(--p-yellow)}
+.observation-text{font-size:15px;line-height:1.55}
+.drc-panel{display:none;margin-bottom:14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.drc-panel.visible{display:block}
+.drc-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:13px 15px;border-bottom:1px solid var(--border)}
+.drc-title{font-weight:700}
+.drc-metrics{display:flex;gap:14px;font:12px Consolas,"Courier New",monospace;color:var(--text-muted)}
+.drc-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:0}
+.drc-item{padding:8px;border-bottom:1px solid var(--border)}
+.drc-item:last-child{border-bottom:0}
+.drc-item canvas{display:block;width:100%;height:220px}
+.drc-caption{padding:0 8px 8px;font:12px Consolas,"Courier New",monospace;color:var(--text-muted)}
+.content-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.tabs{display:flex;gap:0;overflow-x:auto;border-bottom:1px solid var(--border)}
+.tab-btn{flex:1;min-width:110px;padding:12px 14px;border:0;border-right:1px solid var(--border);background:var(--surface);color:var(--text-muted);font-weight:700}
+.tab-btn:last-child{border-right:0}
+.tab-btn:hover{background:var(--surface-alt)}
+.tab-btn[aria-selected="true"]{background:var(--p-bluewash);color:var(--accent-dark);box-shadow:inset 0 -2px var(--accent-dark)}
+.tab-content{padding:18px;max-width:75ch}
+.tab-content h2{font-size:19px;margin-bottom:10px}
+.tab-content p+p{margin-top:10px}
+.clean-list{list-style:none;display:grid;gap:10px}
+.clean-list li{position:relative;padding-left:18px}
+.clean-list li::before{content:"";position:absolute;left:0;top:.68em;width:7px;height:2px;background:var(--accent-dark)}
+details{border-bottom:1px solid var(--border)}
+details:last-child{border-bottom:0}
+summary{position:relative;padding:14px 28px 14px 0;cursor:pointer;font-weight:700;list-style:none}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";position:absolute;right:4px;top:12px;font:20px Consolas,"Courier New",monospace;color:var(--accent-dark)}
+details[open] summary::after{content:"−"}
+.detail-answer{padding:0 0 15px;color:var(--text-muted)}
+.control-panel{padding:18px 14px 28px;background:var(--surface);border-top:1px solid var(--border)}
+.control-sticky{display:grid;gap:18px}
+.control-section{padding-bottom:18px;border-bottom:1px solid var(--border)}
+.control-section:last-child{border-bottom:0;padding-bottom:0}
+.control-title{margin-bottom:12px;font-size:17px;line-height:1.25}
+.field{display:grid;gap:7px;margin-bottom:13px}
+.field label,.field-label{font:700 11px Consolas,"Courier New",monospace;letter-spacing:.09em;text-transform:uppercase;color:var(--text-muted)}
+.field select,.field input{width:100%;min-height:46px;padding:10px 11px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text)}
+.field select:hover,.field input:hover{border-color:var(--text-muted)}
+.dose-row{display:grid;grid-template-columns:minmax(0,1fr) 86px;gap:8px}
+.unit-box{display:grid;place-items:center;min-height:46px;padding:8px;border:1px solid var(--border);border-radius:6px;background:var(--surface-alt);font:12px Consolas,"Courier New",monospace;color:var(--text-muted);text-align:center}
+.range-field{display:none;gap:8px;margin:-2px 0 13px}
+.range-field.visible{display:grid}
+input[type="range"]{width:100%;accent-color:var(--accent-dark);cursor:pointer}
+.range-labels{display:flex;justify-content:space-between;font:11px Consolas,"Courier New",monospace;color:var(--text-muted)}
+.dose-hint{font-size:12px;color:var(--text-muted)}
+.preview-box{padding:12px;background:var(--p-bluewash);border:1px solid var(--border);border-radius:6px}
+.preview-label{font:700 11px Consolas,"Courier New",monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-dark)}
+.preview-text{margin-top:5px;font-size:14px;line-height:1.45}
+.dose-class{display:inline-flex;margin-top:8px;padding:3px 7px;border-radius:4px;background:var(--surface);font:700 11px Consolas,"Courier New",monospace;color:var(--accent-dark)}
+.add-btn{width:100%;margin-top:12px;background:var(--accent-dark);border-color:var(--accent-dark);color:var(--surface)}
+.add-btn:hover{background:var(--text);border-color:var(--text)}
+.secondary-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.tissue-state{display:grid;gap:9px}
+.state-row{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:13px}
+.state-value{font:700 11px Consolas,"Courier New",monospace;color:var(--text-muted);text-align:right}
+.state-value.active{color:var(--accent-dark)}
+.reference-note{font-size:13px;color:var(--text-muted)}
+.reference-note strong{color:var(--text)}
+dialog{width:min(680px,calc(100% - 28px));max-height:85dvh;margin:auto;padding:0;border:1px solid var(--border);border-radius:10px;background:var(--surface);color:var(--text);box-shadow:0 20px 70px oklch(0.1 0.02 260 / .25)}
+dialog::backdrop{background:oklch(0.15 0.02 260 / .6)}
+.dialog-head{position:sticky;top:0;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 18px;background:var(--surface);border-bottom:1px solid var(--border);z-index:1}
+.dialog-head h2{font-size:20px}
+.dialog-body{padding:18px;overflow:auto}
+.dialog-body h3{margin:18px 0 7px;font-size:16px}
+.dialog-body h3:first-child{margin-top:0}
+.dialog-body p,.dialog-body li{max-width:70ch}
+.dialog-body ol{padding-left:22px;display:grid;gap:8px}
+.glossary-grid{display:grid;gap:0}
+.glossary-item{padding:13px 0;border-bottom:1px solid var(--border)}
+.glossary-item:last-child{border-bottom:0}
+.glossary-term{font-weight:700}
+.glossary-item p{margin-top:4px;color:var(--text-muted);font-size:14px}
+.toast{position:fixed;left:50%;bottom:20px;z-index:40;transform:translate(-50%,12px);max-width:calc(100% - 28px);padding:11px 15px;border-radius:6px;background:var(--text);color:var(--surface);font-size:14px;opacity:0;pointer-events:none;transition:opacity .18s ease,transform .18s ease}
+.toast.visible{opacity:1;transform:translate(-50%,0)}
+@media (min-width:700px){
+  .topbar{padding:10px 22px}.top-status{display:block}.workspace{padding:26px 22px 40px}.control-panel{padding:24px 20px}.drc-grid{grid-template-columns:1fr 1fr}.drc-item{border-bottom:0;border-right:1px solid var(--border)}.drc-item:last-child{border-right:0}.observation-strip{grid-template-columns:140px minmax(0,1fr);align-items:start}#mainTrace{height:390px}
+}
+@media (min-width:1120px){
+  .app-shell{grid-template-columns:248px minmax(0,1fr) 320px;align-items:start}
+  .sidebar{border-bottom:0;border-right:1px solid var(--border);min-height:calc(100dvh - 68px)}
+  .side-heading{padding:22px 18px 10px}.experiment-nav{display:grid;overflow:visible;padding:8px 12px 18px}.experiment-btn{grid-template-columns:34px minmax(0,1fr);border-color:transparent}.experiment-btn[aria-current="true"]{border-color:var(--accent-dark)}
+  .control-panel{border-top:0;border-left:1px solid var(--border);min-height:calc(100dvh - 68px);padding:24px 18px}
+  .control-sticky{position:sticky;top:92px}.workspace{padding:28px 24px 48px}
+}
+@media (min-width:1500px){.app-shell{grid-template-columns:280px minmax(0,1fr) 360px}.workspace{padding:32px 32px 56px}.control-panel{padding:28px 22px}}
+@media (max-width:560px){.brand-sub{display:none}.brand-name{font-size:18px}.top-actions .btn-label{display:none}.top-actions .btn{width:44px;padding:0}.exp-header{display:block}.protocol-btn{width:100%;margin-top:12px}.trace-toolbar{align-items:flex-start}.trace-actions{width:100%}.trace-actions .btn{flex:1}.trace-footer{align-items:flex-start}.secondary-actions{grid-template-columns:1fr}.tab-content{padding:16px}.drc-metrics{width:100%;justify-content:space-between}.drc-head{padding:12px}}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-mark" aria-hidden="true"><svg width="27" height="20" viewBox="0 0 27 20" fill="none"><path d="M1 11h5l2-7 4 14 4-13 3 6h7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div><div class="brand-name"><strong>Pharm</strong>Trace</div><span class="brand-sub">Experimental pharmacology · teaching simulator</span></div>
+  </div>
+  <div class="top-status"><span class="status-dot"></span>7 modules · local simulation</div>
+  <div class="top-actions">
+    <button class="btn btn-small" id="helpBtn" type="button" aria-label="Open simulator guide"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.6"/><path d="M7.8 7.5a2.3 2.3 0 1 1 3.3 2.1c-.8.4-1.1.8-1.1 1.7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="10" cy="14.2" r="1" fill="currentColor"/></svg><span class="btn-label">Guide</span></button>
+    <button class="btn btn-small" id="glossaryBtn" type="button" aria-label="Open pharmacology glossary"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3 4.5c2.7-.8 5-.4 7 1.2 2-1.6 4.3-2 7-1.2v11c-2.7-.8-5-.4-7 1.2-2-1.6-4.3-2-7-1.2z" stroke="currentColor" stroke-width="1.5"/><path d="M10 5.7v11" stroke="currentColor" stroke-width="1.5"/></svg><span class="btn-label">Glossary</span></button>
+  </div>
+</header>
+<div class="app-shell">
+  <aside class="sidebar" aria-label="Experiment navigation">
+    <div class="side-heading"><span class="section-label">Experiment index</span><span class="mono" style="font-size:11px;color:var(--text-muted)">01—07</span></div>
+    <nav class="experiment-nav" id="experimentNav"></nav>
+  </aside>
+  <main class="workspace">
+    <section class="exp-header" aria-labelledby="expTitle">
+      <div class="exp-heading">
+        <div class="eyebrow" id="expEyebrow"></div>
+        <h1 id="expTitle"></h1>
+        <p class="exp-objective" id="expObjective"></p>
+        <div class="prep-tags" id="prepTags"></div>
+      </div>
+      <button class="btn protocol-btn" id="protocolBtn" type="button"><span>Run standard protocol</span><span class="arrow-circle" aria-hidden="true">→</span></button>
+    </section>
+    <section class="trace-panel" aria-label="Simulated response tracing">
+      <div class="trace-toolbar">
+        <div><div class="trace-title" id="traceTitle">Response trace</div><div class="mono" id="traceSubtitle" style="margin-top:3px;font-size:11px;color:var(--text-muted)"></div></div>
+        <div class="trace-actions">
+          <button class="btn btn-small toggle-btn" id="referenceBtn" type="button" aria-pressed="false">Expected trace</button>
+          <button class="btn btn-small btn-icon" id="playBtn" type="button" aria-label="Pause simulation"><span id="playIcon" aria-hidden="true">Ⅱ</span></button>
+          <label class="sr-only" for="speedSelect">Simulation speed</label>
+          <select class="speed-select mono" id="speedSelect"><option value="1">1×</option><option value="2" selected>2×</option><option value="4">4×</option></select>
+          <button class="btn btn-small btn-icon" id="exportBtn" type="button" aria-label="Download current trace as PNG"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 2v10m-4-4 4 4 4-4M3 13v4h14v-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        </div>
+      </div>
+      <div class="canvas-wrap">
+        <canvas id="mainTrace" role="img" aria-label="Empty simulated response trace"></canvas>
+        <div class="trace-empty" id="traceEmpty"><div><strong>No drug added yet</strong><br>Select a drug and dose, then add it to begin.<br>The standard protocol reproduces the worksheet sequence.</div></div>
+      </div>
+      <div class="trace-footer"><div class="legend"><span class="legend-item"><span class="legend-line"></span>Your simulation</span><span class="legend-item"><span class="legend-line ref"></span>Expected worksheet pattern</span></div><span id="timeReadout">t = 0.0 s</span></div>
+      <div class="event-log">
+        <div class="event-log-header"><span class="section-label">Addition sequence</span><span class="mono" id="eventCount" style="font-size:11px;color:var(--text-muted)">0 events</span></div>
+        <div class="event-chips" id="eventChips"><div class="event-empty">Drug additions and their responses will appear here.</div></div>
+      </div>
+    </section>
+    <section class="observation-strip" aria-live="polite"><div class="observation-label" id="observationLabel">Expected observation</div><div class="observation-text" id="observationText"></div></section>
+    <section class="drc-panel" id="drcPanel" aria-label="Acetylcholine dose-response analysis">
+      <div class="drc-head"><div><div class="drc-title">Graded dose–response analysis</div><div class="mono" style="font-size:11px;color:var(--text-muted);margin-top:3px">Non-cumulative ACh · geometric dose progression</div></div><div class="drc-metrics"><span>EC50 ≈ <strong id="ec50Readout">2.15 µg</strong></span><span>Emax = <strong>1.00</strong></span></div></div>
+      <div class="drc-grid"><div class="drc-item"><canvas id="arithmeticDrc" role="img" aria-label="Arithmetic dose-response curve"></canvas><div class="drc-caption">Arithmetic dose axis · rectangular-hyperbola form</div></div><div class="drc-item"><canvas id="logDrc" role="img" aria-label="Logarithmic dose-response curve"></canvas><div class="drc-caption">Log₂ dose axis · sigmoid with near-linear mid-portion</div></div></div>
+    </section>
+    <section class="content-panel">
+      <div class="tabs" role="tablist" aria-label="Experiment learning content">
+        <button class="tab-btn" id="mechanismTab" role="tab" aria-selected="true" aria-controls="tabContent" data-tab="mechanism" type="button">Mechanism</button>
+        <button class="tab-btn" id="qaTab" role="tab" aria-selected="false" aria-controls="tabContent" data-tab="qa" type="button">Q&amp;A</button>
+        <button class="tab-btn" id="clinicalTab" role="tab" aria-selected="false" aria-controls="tabContent" data-tab="clinical" type="button">Clinical link</button>
+      </div>
+      <div class="tab-content" id="tabContent" role="tabpanel" aria-labelledby="mechanismTab"></div>
+    </section>
+  </main>
+  <aside class="control-panel" aria-label="Drug addition controls">
+    <div class="control-sticky">
+      <section class="control-section">
+        <div class="section-label" style="margin-bottom:5px">Drug tray</div>
+        <h2 class="control-title" id="drugTrayTitle">Add to tissue</h2>
+        <div class="field"><label for="drugSelect">Chemical / drug</label><select id="drugSelect"></select></div>
+        <div class="field" id="doseField"><label for="doseInput">Dose</label><div class="dose-row"><input id="doseInput" type="number" inputmode="decimal" min="0.01" step="0.25" value="1"><div class="unit-box" id="doseUnit">µg</div></div><div class="dose-hint" id="doseHint"></div></div>
+        <div class="range-field" id="rangeField"><label class="sr-only" for="doseRange">ACh dose slider</label><input id="doseRange" type="range" min="0.25" max="16" step="0.25" value="0.25"><div class="range-labels"><span>0.25 µg</span><span>16 µg</span></div></div>
+        <div class="preview-box" aria-live="polite"><div class="preview-label">Predicted response</div><div class="preview-text" id="previewText"></div><span class="dose-class" id="doseClass" hidden></span></div>
+        <button class="btn add-btn" id="addDrugBtn" type="button">Add ACh to tissue</button>
+        <div class="secondary-actions"><button class="btn btn-small" id="undoBtn" type="button" disabled>Undo last</button><button class="btn btn-small" id="resetBtn" type="button">Reset</button></div>
+      </section>
+      <section class="control-section"><div class="section-label" style="margin-bottom:11px">Preparation state</div><div class="tissue-state" id="tissueState"></div></section>
+      <section class="control-section"><p class="reference-note"><strong>Model scope.</strong> Relative teaching responses reproduce the supplied worksheet patterns. They are not patient dosing guidance or a quantitative physiological model.</p></section>
+    </div>
+  </aside>
+</div>
+<dialog id="helpDialog" aria-labelledby="helpTitle">
+  <div class="dialog-head"><h2 id="helpTitle">How to run the simulator</h2><button class="btn btn-icon dialog-close" type="button" aria-label="Close guide">×</button></div>
+  <div class="dialog-body"><ol><li>Select one of the seven experiments.</li><li>Choose a drug and dose. The predicted response updates before you add it.</li><li>Select <strong>Add to tissue</strong> or <strong>Administer IV</strong>. Each addition is appended to the trace.</li><li>Add blockers before agonists where required. Tissue state persists until reset.</li><li>Use <strong>Run standard protocol</strong> to reproduce the worksheet order automatically.</li><li>Turn on <strong>Expected trace</strong> to compare your sequence with the reference pattern.</li></ol><h3>Important sequence note</h3><p>For Experiment 2, the first ACh response immediately after physostigmine is potentiated (about 2.5×). The next ACh response is partly recovered, resolving the worksheet caption conflict as specified in the written reference.</p><h3>Reading the graphs</h3><p>Frog rectus contractures rise upward. Dog blood-pressure depressor responses fall below baseline; pressor responses rise above it. All amplitudes are relative teaching units.</p></div>
+</dialog>
+<dialog id="glossaryDialog" aria-labelledby="glossaryTitle">
+  <div class="dialog-head"><h2 id="glossaryTitle">Pharmacology glossary</h2><button class="btn btn-icon dialog-close" type="button" aria-label="Close glossary">×</button></div>
+  <div class="dialog-body"><div class="glossary-grid">
+    <div class="glossary-item"><div class="glossary-term">Potentiation</div><p>A drug with little or no effect by itself enhances another drug’s response. Physostigmine potentiates ACh by inhibiting its hydrolysis.</p></div>
+    <div class="glossary-item"><div class="glossary-term">Summation</div><p>The combined effect equals the sum of the individual drug effects.</p></div>
+    <div class="glossary-item"><div class="glossary-term">Synergism</div><p>A general term for a combined effect greater than expected from the individual actions; potentiation is one form.</p></div>
+    <div class="glossary-item"><div class="glossary-term">EC50 / ED50</div><p>The concentration or dose producing 50% of the maximal response; an index of potency.</p></div>
+    <div class="glossary-item"><div class="glossary-term">Emax</div><p>The maximum response a drug can produce; an index of efficacy.</p></div>
+    <div class="glossary-item"><div class="glossary-term">Competitive antagonism</div><p>A reversible antagonist competes with the agonist for the same receptor, causing a parallel rightward dose–response shift. Enough agonist can still achieve Emax.</p></div>
+    <div class="glossary-item"><div class="glossary-term">Non-competitive antagonism</div><p>The antagonist reduces the agonist’s effectiveness without simple surmountable competition; Emax is reduced.</p></div>
+    <div class="glossary-item"><div class="glossary-term">Tachyphylaxis</div><p>Rapid reduction in response after repeated doses at short intervals, as with tyramine-induced depletion of releasable noradrenaline.</p></div>
+    <div class="glossary-item"><div class="glossary-term">Tolerance</div><p>A reduced response that generally develops more gradually with repeated exposure, for example with nitrates or opioids.</p></div>
+  </div></div>
+</dialog>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+'use strict';
+const experiments = [
+  {
+    id:'gdr', nav:'Graded dose–response', navMeta:'ACh · frog rectus', eyebrow:'Experiment 01 · Graded dose–response',
+    title:'Graded response to acetylcholine', objective:'Construct a graded dose–response relationship using non-cumulative, doubling doses of acetylcholine (ACh).',
+    prep:['Isolated frog rectus abdominis','Frog Ringer · aerated','Non-cumulative doses'], action:'Add to tissue', traceSubtitle:'Nm-mediated contracture · wash between doses', yLabel:'Contracture (relative)', yMin:0, yMax:1.18,
+    drugs:[{id:'ach',name:'Acetylcholine (ACh)',dose:0.25,unit:'µg',step:0.25,min:0.25,hint:'Use 0.25, 0.5, 1, 2, 4, 8 and 16 µg for the standard series.'}],
+    protocol:[['ach',0.25],['ach',0.5],['ach',1],['ach',2],['ach',4],['ach',8],['ach',16]],
+    expected:'0.25 µg is sub-threshold; 0.5 µg is threshold; 1–4 µg are submaximal; 8 µg is maximal; 16 µg is supramaximal and does not exceed Emax.',
+    mechanism:['ACh activates nicotinic muscle-type (Nm) receptors at the motor endplate. These are ligand-gated Na⁺/K⁺ channels.','Depolarization of tonic, multiply innervated frog rectus fibres produces a sustained contracture.','Plotting response against arithmetic dose gives a rectangular-hyperbola form; a log-dose axis gives a sigmoid curve with a near-linear middle portion.','EC50 describes potency, while Emax describes efficacy.'],
+    qas:[
+      ['Which cholinergic receptor is involved?','Nicotinic muscle-type (Nm) receptors at the motor endplate.'],
+      ['What is this set of responses called?','A graded dose–response curve (GDR or GDRC), constructed using non-cumulative doses in geometric progression.'],
+      ['How are the dose classes identified?','Sub-threshold: no detectable response. Threshold: smallest just-detectable response. Submaximal: between threshold and maximum. Maximal: lowest dose producing Emax. Supramaximal: above maximal dose, with no further increase.']
+    ],
+    clinical:['Graded dose–response curves allow potency (EC50/ED50) and efficacy (Emax) to be compared between agonists.','A rightward shift with preserved Emax suggests surmountable competitive antagonism; a depressed Emax suggests reduced efficacy or non-competitive antagonism.']
+  },
+  {
+    id:'phys-ach', nav:'ACh potentiation', navMeta:'Physostigmine · frog rectus', eyebrow:'Experiment 02 · Potentiation',
+    title:'Physostigmine potentiates ACh', objective:'Demonstrate enhancement of ACh-induced contracture after reversible acetylcholinesterase inhibition.',
+    prep:['Isolated frog rectus abdominis','ACh 2 µg','Physostigmine 10 µg'], action:'Add to tissue', traceSubtitle:'First post-physostigmine ACh ≈2.5× · later response partly recovered', yLabel:'Contracture (relative)', yMin:0, yMax:3.05,
+    drugs:[{id:'ach',name:'Acetylcholine (ACh)',dose:2,unit:'µg',step:0.5,min:0.25,hint:'The worksheet uses 2 µg before and after physostigmine.'},{id:'phys',name:'Physostigmine',dose:10,unit:'µg',step:1,min:1,hint:'Reversible carbamate anticholinesterase; negligible response alone here.'}],
+    protocol:[['ach',2],['ach',2],['phys',10],['ach',2],['ach',2]],
+    expected:'ACh 2 µg produces reproducible control contractures. Physostigmine alone is negligible; the next ACh response is about 2.5× control and prolonged, while the later ACh response is partly recovered.',
+    mechanism:['ACh is normally hydrolysed by synaptic acetylcholinesterase (AChE) into choline and acetate. Choline is taken back into the nerve terminal; ACh itself is not taken back up.','Physostigmine is a reversible carbamate anticholinesterase. It inhibits ACh breakdown, increasing and prolonging ACh availability at Nm receptors.','The isolated preparation has negligible endogenous ACh release, so physostigmine alone produces little or no response.','This is potentiation, not simple summation: physostigmine has little effect alone but enhances ACh by inhibiting its metabolism.'],
+    qas:[
+      ['Name the neurotransmitter and motor-endplate receptor.','Acetylcholine acting at nicotinic Nm receptors.'],
+      ['How is ACh action terminated?','Hydrolysis by AChE to choline and acetate, followed by choline uptake into the nerve terminal. Diffusion also contributes.'],
+      ['Why is the post-physostigmine ACh response larger?','AChE inhibition prevents rapid ACh destruction, so receptor exposure rises and persists.'],
+      ['What phenomenon is demonstrated?','Potentiation: a drug with little or no effect alone enhances the effect of another drug.']
+    ],
+    clinical:['Physostigmine is a tertiary amine that crosses the blood–brain barrier. Its main current use is severe central and peripheral anticholinergic poisoning, including atropine toxicity.','It has historical uses in glaucoma, myasthenia gravis and neuromuscular-block reversal, but other agents are generally preferred. It is not a current Alzheimer’s disease treatment.','Cautions include asthma, bradycardia, bowel or urinary obstruction, and tricyclic-antidepressant overdose with conduction defects.']
+  },
+  {
+    id:'muscarinic-pot', nav:'Selective potentiation', navMeta:'Muscarinic agonists · dog BP', eyebrow:'Experiment 03 · Selective potentiation',
+    title:'Physostigmine and muscarinic agonists', objective:'Compare ACh, pilocarpine and carbachol before and after physostigmine in an anaesthetized dog.',
+    prep:['Anaesthetized dog','Carotid blood pressure','IV bolus'], action:'Administer IV', traceSubtitle:'Only ACh is potentiated · pilocarpine and carbachol unchanged', yLabel:'Δ Blood pressure (relative)', yMin:-2.45, yMax:0.35,
+    drugs:[{id:'ach',name:'Acetylcholine (ACh)',dose:null,unit:'IV bolus',hint:'Worksheet dose not specified; uses the standard IV bolus.'},{id:'pilo',name:'Pilocarpine',dose:null,unit:'IV bolus',hint:'Plant alkaloid; not hydrolysed by cholinesterases.'},{id:'carba',name:'Carbachol',dose:null,unit:'IV bolus',hint:'Carbamate ester resistant to cholinesterases.'},{id:'phys',name:'Physostigmine',dose:null,unit:'IV bolus',hint:'Adds reversible cholinesterase inhibition.'}],
+    protocol:[['ach',null],['pilo',null],['carba',null],['phys',null],['ach',null],['pilo',null],['carba',null]],
+    expected:'All three agonists initially lower BP. After physostigmine, only the ACh depressor response is approximately doubled; pilocarpine and carbachol responses remain unchanged.',
+    mechanism:['M3 receptors on vascular endothelium signal through Gq, PLC, IP₃ and Ca²⁺ to activate eNOS. Nitric oxide increases cGMP in vascular smooth muscle, causing relaxation and reduced total peripheral resistance.','M2 receptors on the heart signal through Gi and increase K⁺ efflux in the SA node, causing bradycardia and reducing cardiac output.','ACh is hydrolysed by AChE and plasma butyrylcholinesterase, so physostigmine prolongs and potentiates its action.','Pilocarpine is not an ester substrate, and carbachol is resistant to cholinesterases; neither response is potentiated.'],
+    qas:[
+      ['What response do the three agonists produce?','Each produces transient hypotension, with bradycardia contributing to the BP fall.'],
+      ['Which receptors are involved?','Endothelial M3 receptors mediate vasodilatation; cardiac M2 receptors mediate bradycardia and reduced contractility.'],
+      ['Why is only ACh potentiated?','Only ACh is appreciably terminated by cholinesterase hydrolysis. Pilocarpine and carbachol resist this breakdown, so AChE inhibition does not enhance them.']
+    ],
+    clinical:['The experiment illustrates why a drug’s metabolic pathway determines its susceptibility to interaction with anticholinesterases.','Direct muscarinic agonists such as pilocarpine and carbachol have longer and more predictable actions than ACh because they resist rapid cholinesterase hydrolysis.']
+  },
+  {
+    id:'competitive', nav:'Competitive antagonism', navMeta:'ACh vs d-TC · frog rectus', eyebrow:'Experiment 04 · Competitive antagonism',
+    title:'ACh versus d-tubocurarine', objective:'Show reversible, surmountable antagonism of ACh by a fixed dose of d-tubocurarine (d-TC).',
+    prep:['Isolated frog rectus abdominis','ACh 1, 2, 4 µg','d-TC 5 µg'], action:'Add to tissue', traceSubtitle:'Parallel rightward shift · block surmounted by higher ACh doses', yLabel:'Contracture (relative)', yMin:0, yMax:3.35,
+    drugs:[{id:'ach',name:'Acetylcholine (ACh)',dose:1,unit:'µg',step:1,min:1,hint:'Standard graded doses are 1, 2 and 4 µg.'},{id:'dtc',name:'d-Tubocurarine (d-TC)',dose:5,unit:'µg',step:1,min:1,hint:'Fixed 5 µg dose; produces no direct contracture.'}],
+    protocol:[['ach',1],['ach',2],['ach',4],['dtc',5],['ach',1],['ach',2],['ach',4]],
+    expected:'Control ACh responses increase with dose. After d-TC, the same doses give approximately 0.3, 0.6 and 0.9 relative responses; increasing ACh partly overcomes the block.',
+    mechanism:['d-TC is a reversible competitive antagonist at nicotinic Nm receptors. It occupies receptors without activating them.','Fewer receptors are available to ACh, producing a parallel rightward shift of the graded dose–response curve.','The antagonism is surmountable: sufficiently high agonist concentrations can still achieve Emax.','Clinically, anticholinesterases increase synaptic ACh and help overcome non-depolarizing neuromuscular block; this is different from Dale’s vasomotor reversal.'],
+    qas:[
+      ['Why is the ACh response reduced after d-TC?','d-TC competitively occupies Nm receptors without activating them, so a given ACh dose activates fewer receptors.'],
+      ['Why can larger ACh doses restore the response?','The block is reversible and competitive. Increasing agonist concentration shifts receptor occupancy back toward ACh.'],
+      ['How is clinical neuromuscular block reversed?','Neostigmine, edrophonium or pyridostigmine can increase synaptic ACh; an antimuscarinic such as atropine or glycopyrrolate limits muscarinic adverse effects. Sugammadex reverses rocuronium or vecuronium by selective encapsulation.']
+    ],
+    clinical:['d-TC is obsolete because of histamine release, ganglion blockade, hypotension, bronchospasm and a long, unpredictable duration.','Non-depolarizing alternatives include atracurium, cisatracurium, vecuronium, rocuronium, pancuronium and mivacurium.','Succinylcholine is a depolarizing blocker with a different mechanism; phase I block is not reversed by neostigmine.']
+  },
+  {
+    id:'ach-actions', nav:'Muscarinic + nicotinic ACh', navMeta:'Atropine · dog BP', eyebrow:'Experiment 05 · Dual actions of ACh',
+    title:'Muscarinic and nicotinic actions of ACh', objective:'Use atropine to separate the muscarinic depressor action of ACh from its high-dose nicotinic pressor action.',
+    prep:['Anaesthetized dog','Carotid blood pressure','IV bolus'], action:'Administer IV', traceSubtitle:'Atropine abolishes depressor responses · high-dose ACh becomes pressor', yLabel:'Δ Blood pressure (relative)', yMin:-1.5, yMax:2.75,
+    drugs:[{id:'muscarine',name:'Muscarine',dose:1,unit:'mg',step:0.5,min:0.5,hint:'Worksheet dose: 1 mg IV bolus.'},{id:'ach',name:'Acetylcholine (ACh)',dose:1,unit:'µg',step:1,min:1,hint:'Use 1 µg for low-dose ACh or 500 µg (=0.5 mg) for high-dose ACh.'},{id:'atropine',name:'Atropine',dose:2,unit:'mg',step:0.5,min:0.5,hint:'Worksheet dose: 2 mg; blocks muscarinic receptors.'}],
+    protocol:[['muscarine',1],['ach',1],['atropine',2],['muscarine',1],['ach',1],['ach',500]],
+    expected:'Before atropine, muscarine and low-dose ACh lower BP. After atropine both depressor responses are abolished. High-dose ACh (0.5 mg) then produces a marked, broad rise in BP.',
+    mechanism:['Low-dose ACh and muscarine activate endothelial M3 and cardiac M2 receptors, causing vasodilatation and bradycardia, respectively. BP falls.','Atropine blocks muscarinic receptors, abolishing these depressor responses.','High-dose ACh after atropine activates nicotinic NN receptors in sympathetic ganglia and adrenal medulla. Noradrenaline and adrenaline release produce vasoconstriction, tachycardia and a net BP rise.','Atropine blocks muscarinic actions only; it does not block the nicotinic actions unmasked by high-dose ACh.'],
+    qas:[
+      ['What happens to muscarine and low-dose ACh after atropine?','Their depressor responses are abolished because muscarinic receptors are blocked.'],
+      ['Why does high-dose ACh raise BP after atropine?','Its nicotinic actions predominate: sympathetic ganglion and adrenal-medullary NN activation increases catecholamine release, producing vasoconstriction and cardiac stimulation.'],
+      ['Why is ACh itself rarely used clinically?','It is very short acting, non-selective and has many effects. As a quaternary ammonium compound it is poorly absorbed orally and does not cross the blood–brain barrier.']
+    ],
+    clinical:['ACh is used intraocularly to produce rapid miosis during cataract surgery, rather than systemically.','Synthetic esters such as carbachol and bethanechol, and alkaloids such as pilocarpine, offer more selective and sustained muscarinic effects.']
+  },
+  {
+    id:'dale', nav:'Dale’s vasomotor reversal', navMeta:'Epinephrine + tolazoline · dog BP', eyebrow:'Experiment 06 · Epinephrine reversal',
+    title:'Dale’s vasomotor reversal', objective:'Demonstrate conversion of epinephrine’s pressor response to a depressor response after α-adrenergic blockade.',
+    prep:['Anaesthetized dog','Epinephrine 2 µg/kg','Tolazoline 100 µg/kg'], action:'Administer IV', traceSubtitle:'α-blockade unmasks β₂-mediated vasodilatation', yLabel:'Δ Blood pressure (relative)', yMin:-1.65, yMax:2.15,
+    drugs:[{id:'epi',name:'Epinephrine',dose:2,unit:'µg/kg',step:0.5,min:0.5,hint:'Worksheet dose: 2 µg/kg IV.'},{id:'tolazoline',name:'Tolazoline',dose:100,unit:'µg/kg',step:10,min:10,hint:'Worksheet dose: 100 µg/kg IV; non-selective α-blocker.'}],
+    protocol:[['epi',2],['tolazoline',100],['epi',2]],
+    expected:'Epinephrine first raises BP, followed by a small β₂-mediated dip. After tolazoline, the same epinephrine dose produces a fall in BP: Dale’s vasomotor reversal.',
+    mechanism:['Before α-blockade, epinephrine raises BP through α₁-mediated vasoconstriction and β₁-mediated increases in heart rate and contractility. A small later dip reflects β₂ vasodilatation in skeletal-muscle vessels.','Tolazoline is a non-selective competitive α₁/α₂ antagonist, with some direct vasodilator and histamine-like action.','After tolazoline, α-mediated vasoconstriction is blocked. Unopposed β₂ stimulation causes skeletal-muscle vasodilatation, so epinephrine lowers BP while β₁ cardiac effects persist.','The reversal occurs with epinephrine, not noradrenaline, which has little β₂ action. Phenoxybenzamine and phentolamine can produce the same interaction.'],
+    qas:[
+      ['Which receptors explain the initial epinephrine response?','α₁ receptors mediate vasoconstriction, β₁ receptors stimulate the heart, and β₂ receptors account for the small later vasodilator dip.'],
+      ['Why does epinephrine lower BP after tolazoline?','α-blockade removes vasoconstriction, leaving unopposed β₂-mediated vasodilatation in skeletal-muscle vessels.'],
+      ['Name the phenomenon.','Dale’s vasomotor reversal, also called epinephrine reversal: competitive α-antagonism with unmasking of the β₂ depressor response.']
+    ],
+    clinical:['This experiment explains why epinephrine can produce a paradoxical BP fall in the presence of an α-blocker.','Tolazoline has a historical role in persistent pulmonary hypertension of the newborn; phentolamine and phenoxybenzamine also demonstrate epinephrine reversal.']
+  },
+  {
+    id:'tachy', nav:'Tachyphylaxis', navMeta:'Repeated tyramine · dog BP', eyebrow:'Experiment 07 · Tachyphylaxis',
+    title:'Tachyphylaxis to repeated tyramine', objective:'Show rapid attenuation of the pressor response when identical tyramine doses are repeated at short intervals.',
+    prep:['Anaesthetized dog','Tyramine 0.3 mg/kg IV','5-minute dose intervals'], action:'Administer IV', traceSubtitle:'Repeated doses · relative peaks 100 → 55 → 30 → 10%', yLabel:'Δ Blood pressure (relative)', yMin:-0.18, yMax:2.2,
+    drugs:[{id:'tyramine',name:'Tyramine',dose:0.3,unit:'mg/kg',step:0.1,min:0.1,hint:'Repeat 0.3 mg/kg IV at short intervals to reproduce the worksheet.'}],
+    protocol:[['tyramine',0.3],['tyramine',0.3],['tyramine',0.3],['tyramine',0.3]],
+    expected:'The first tyramine dose produces a marked pressor response. Identical subsequent doses produce progressively smaller peaks: approximately 100%, 55%, 30% and 10% of the initial response.',
+    mechanism:['Tyramine is an indirect-acting sympathomimetic. It enters the adrenergic nerve terminal through NET and displaces noradrenaline from storage vesicles into the cytoplasm and then toward receptors.','Repeated doses deplete the releasable noradrenaline pool faster than it can be replenished, so each successive pressor response is smaller. Tyramine also has weak direct agonist activity.','This rapid acute attenuation is tachyphylaxis. Direct-acting agonists such as noradrenaline or adrenaline can still act after tyramine tachyphylaxis.','Tolerance generally develops more slowly; tachyphylaxis develops rapidly over closely spaced doses.'],
+    qas:[
+      ['What is the initial response to tyramine?','A marked rise in BP caused primarily by indirect noradrenaline release.'],
+      ['Why do responses 2, 3 and 4 become smaller?','Repeated dosing depletes the readily releasable neuronal noradrenaline store, so less transmitter is available for subsequent release.'],
+      ['Name other drugs with similar behaviour.','Ephedrine, amphetamine, methamphetamine, mephentermine, metaraminol, phenylpropanolamine and pseudoephedrine are indirect or mixed sympathomimetics that may show tachyphylaxis.']
+    ],
+    clinical:['Tyramine is linked to the “cheese reaction” in people taking non-selective MAO inhibitors: impaired tyramine metabolism can cause excessive noradrenaline release and hypertensive crisis.','The distinction between tachyphylaxis and slower tolerance helps explain diminishing responses to indirectly acting sympathomimetics.']
+  }
+];
+
+const $ = id => document.getElementById(id);
+const mainCanvas = $('mainTrace');
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+let currentExp = 0;
+let activeTab = 'mechanism';
+let sim = freshState();
+let animationFrame = null;
+let lastFrameTime = null;
+let toastTimer = null;
+let referenceEvents = [];
+let doseChartFrame = null;
+
+function freshState(){
+  return {events:[],time:0,playing:false,speed:Number($('speedSelect')?.value||2),showReference:false,selectedEvent:null,flags:{phys:false,physAchCount:0,dtc:false,atropine:false,tolazoline:false,tyramineCount:0}};
+}
+function exp(){ return experiments[currentExp]; }
+function drugById(id){ return exp().drugs.find(d=>d.id===id); }
+function cloneFlags(flags){ return {...flags}; }
+function formatNumber(value){
+  if(value===null||value===undefined) return '';
+  if(Number.isInteger(value)) return String(value);
+  return String(Number(value.toFixed(2)));
+}
+function formatDose(drug,dose){
+  if(dose===null||dose===undefined) return drug.unit;
+  if(drug.id==='ach' && drug.unit==='µg' && dose===500) return '0.5 mg (500 µg)';
+  return `${formatNumber(dose)} ${drug.unit}`;
+}
+function interpolateAnchors(value,anchors,log=true){
+  if(value<=anchors[0][0]) return anchors[0][1];
+  for(let i=0;i<anchors.length-1;i++){
+    const a=anchors[i],b=anchors[i+1];
+    if(value<=b[0]){
+      const x=log?Math.log2(value):value, x0=log?Math.log2(a[0]):a[0], x1=log?Math.log2(b[0]):b[0];
+      const f=(x-x0)/(x1-x0);
+      return a[1]+f*(b[1]-a[1]);
+    }
+  }
+  return anchors[anchors.length-1][1];
+}
+function achGdr(dose){
+  const anchors=[[0.25,0],[0.5,0.06],[1,0.28],[2,0.48],[4,0.75],[8,1],[16,1]];
+  return interpolateAnchors(Math.max(0.25,Math.min(16,dose)),anchors,true);
+}
+function doseClass(dose){
+  if(dose<0.5) return 'Sub-threshold';
+  if(dose===0.5) return 'Threshold';
+  if(dose<8) return 'Submaximal';
+  if(dose===8) return 'Maximal';
+  return 'Supramaximal';
+}
+function responseFor(drug,dose,flags){
+  const e=exp();
+  const base={amplitude:0,shape:'bpSpike',duration:4.4,responseText:'No measurable deflection',observation:''};
+  if(e.id==='gdr'){
+    const amplitude=achGdr(dose);
+    return {...base,amplitude,shape:'contracture',duration:4.2,responseText:amplitude===0?'No detectable response':`${Math.round(amplitude*100)}% of Emax`,observation:`ACh ${formatDose(drug,dose)}: ${doseClass(dose).toLowerCase()} dose, producing ${amplitude===0?'no detectable contracture':`a contracture at ${Math.round(amplitude*100)}% of Emax`}.`};
+  }
+  if(e.id==='phys-ach'){
+    if(drug.id==='phys') return {...base,shape:'contracture',responseText:'Negligible direct response',observation:'Physostigmine alone produces no appreciable contracture in the isolated tissue; AChE is now inhibited for subsequent ACh additions.'};
+    const scale=Math.max(0,dose/2);
+    if(!flags.phys) return {...base,amplitude:scale,shape:'contracture',responseText:`Control · ${formatNumber(scale)}×`,observation:`ACh ${formatDose(drug,dose)} produces a control Nm-mediated contracture before cholinesterase inhibition.`};
+    const first=flags.physAchCount===0;
+    const amplitude=scale*(first?2.5:1.15);
+    return {...base,amplitude,shape:'contracture',duration:first?6:4.8,responseText:first?'Potentiated · ≈2.5×':'Partly recovered · ≈1.15×',observation:first?'ACh immediately after physostigmine produces a larger, prolonged contracture (about 2.5× control) because ACh hydrolysis is inhibited.':'This later ACh response is partly recovered toward control, matching the selected interpretation of worksheet response 4.'};
+  }
+  if(e.id==='muscarinic-pot'){
+    if(drug.id==='phys') return {...base,responseText:'No direct BP deflection',observation:'Physostigmine is administered. Subsequent ACh breakdown will be inhibited; pilocarpine and carbachol remain resistant.'};
+    if(drug.id==='ach'){
+      const potentiated=flags.phys;
+      return {...base,amplitude:potentiated?-2:-1,duration:potentiated?6:4.4,responseText:potentiated?'Depressor · ≈2× control':'Depressor · control',observation:potentiated?'ACh after physostigmine produces an approximately twofold larger and prolonged BP fall.':'ACh produces a transient muscarinic BP fall before physostigmine.'};
+    }
+    const pilo=drug.id==='pilo';
+    return {...base,amplitude:pilo?-0.85:-0.9,responseText:flags.phys?'Depressor · unchanged':'Depressor · control',observation:`${drug.name} produces a transient BP fall${flags.phys?' that is unchanged after physostigmine because this agonist is not terminated by cholinesterase hydrolysis':''}.`};
+  }
+  if(e.id==='competitive'){
+    if(drug.id==='dtc') return {...base,shape:'contracture',responseText:'No direct contracture',observation:'d-Tubocurarine occupies Nm receptors without activating them. Subsequent ACh responses will be competitively reduced.'};
+    const blocked=flags.dtc;
+    const anchors=blocked?[[1,0.3],[2,0.6],[4,0.9]]:[[1,1],[2,2],[4,3]];
+    const amplitude=interpolateAnchors(Math.max(1,Math.min(4,dose)),anchors,true);
+    return {...base,amplitude,shape:'contracture',responseText:`${blocked?'After d-TC':'Control'} · ${formatNumber(amplitude)} unit${amplitude===1?'':'s'}`,observation:blocked?`ACh ${formatDose(drug,dose)} gives a reduced response in the presence of d-TC. Higher ACh doses partly surmount the competitive block.`:`ACh ${formatDose(drug,dose)} produces a graded control contracture before Nm receptor antagonism.`};
+  }
+  if(e.id==='ach-actions'){
+    if(drug.id==='atropine') return {...base,responseText:'Muscarinic block established',observation:'Atropine blocks muscarinic receptors. Subsequent muscarine and low-dose ACh depressor responses will be abolished.'};
+    if(drug.id==='muscarine') return {...base,amplitude:flags.atropine?0:-1,responseText:flags.atropine?'Abolished after atropine':'Depressor · control',observation:flags.atropine?'Muscarine produces no BP deflection after atropine because its muscarinic receptors are blocked.':'Muscarine produces a transient muscarinic fall in BP.'};
+    const high=dose>=100;
+    if(flags.atropine){
+      if(high) return {...base,amplitude:2.35,shape:'pressorBroad',duration:7.2,responseText:'Marked pressor · nicotinic',observation:'High-dose ACh after atropine produces a broad pressor response: NN activation in sympathetic ganglia and adrenal medulla is now unmasked.'};
+      return {...base,responseText:'Abolished after atropine',observation:'Low-dose ACh produces no depressor response after muscarinic blockade.'};
+    }
+    return {...base,amplitude:-0.9,responseText:high?'Depressor · outside standard sequence':'Depressor · control',observation:high?'High-dose ACh is shown with a depressor response before atropine; the worksheet’s high-dose pressor demonstration requires atropine first.':'Low-dose ACh produces a transient M3/M2-mediated fall in BP.'};
+  }
+  if(e.id==='dale'){
+    if(drug.id==='tolazoline') return {...base,responseText:'α₁/α₂ block established',observation:'Tolazoline establishes competitive α-adrenergic blockade. The next epinephrine response will be reversed from pressor to depressor.'};
+    const scale=Math.max(0,dose/2);
+    if(flags.tolazoline) return {...base,amplitude:-1.25*scale,shape:'bpSpike',duration:5.6,responseText:'Reversed · depressor',observation:'After tolazoline, epinephrine lowers BP because α-mediated vasoconstriction is blocked and β₂-mediated vasodilatation is unopposed.'};
+    return {...base,amplitude:1.75*scale,dip:-0.34*scale,shape:'epiBiphasic',duration:6.2,responseText:'Pressor + small β₂ dip',observation:'Epinephrine produces an α₁/β₁-mediated pressor response, followed by a small β₂-mediated depressor dip.'};
+  }
+  if(e.id==='tachy'){
+    const index=Math.min(flags.tyramineCount,3);
+    const fractions=[1,0.55,0.30,0.10];
+    const fraction=flags.tyramineCount>3?0.08:fractions[index];
+    const scale=Math.max(0,dose/0.3);
+    return {...base,amplitude:1.8*fraction*scale,shape:'pressorBroad',duration:5.6,responseText:`Pressor · ${Math.round(fraction*100)}% of first`,observation:flags.tyramineCount===0?'The first tyramine dose produces a marked pressor response through indirect noradrenaline release.':`Tyramine dose ${flags.tyramineCount+1} produces ${Math.round(fraction*100)}% of the initial response as the readily releasable noradrenaline pool becomes depleted.`};
+  }
+  return base;
+}
+function updateFlags(drug,dose,flags){
+  const id=exp().id;
+  if(id==='phys-ach'){
+    if(drug.id==='phys'){flags.phys=true;flags.physAchCount=0;}
+    else if(flags.phys) flags.physAchCount++;
+  }
+  if(id==='muscarinic-pot'&&drug.id==='phys') flags.phys=true;
+  if(id==='competitive'&&drug.id==='dtc') flags.dtc=true;
+  if(id==='ach-actions'&&drug.id==='atropine') flags.atropine=true;
+  if(id==='dale'&&drug.id==='tolazoline') flags.tolazoline=true;
+  if(id==='tachy'&&drug.id==='tyramine') flags.tyramineCount++;
+}
+function isBlocker(drug){return ['phys','dtc','atropine','tolazoline'].includes(drug.id);}
+function createEvent(drug,dose,time,flags,marker){
+  const response=responseFor(drug,dose,flags);
+  const event={id:`${Date.now()}-${Math.random().toString(16).slice(2)}`,drugId:drug.id,name:drug.name,dose,doseLabel:formatDose(drug,dose),time,marker,...response};
+  updateFlags(drug,dose,flags);
+  return event;
+}
+function protocolEvents(){
+  const flags=freshState().flags;
+  const events=[];
+  let time=1,marker=0;
+  for(const [drugId,dose] of exp().protocol){
+    const drug=drugById(drugId);
+    if(isBlocker(drug)&&['ach-actions','dale'].includes(exp().id)) marker=0;
+    if(!isBlocker(drug)) marker++;
+    const event=createEvent(drug,dose,time,flags,isBlocker(drug)?'X':String(marker));
+    events.push(event);
+    time+=Math.max(5.4,event.duration+1.05);
+  }
+  return events;
+}
+function endTime(events=sim.events){
+  if(!events.length) return 12;
+  const last=events[events.length-1];
+  return last.time+last.duration+1.8;
+}
+function nextNonblockerMarker(events){
+  let relevant=events;
+  if(['ach-actions','dale'].includes(exp().id)){
+    const resetDrug=exp().id==='ach-actions'?'atropine':'tolazoline';
+    const resetIndex=events.map(event=>event.drugId).lastIndexOf(resetDrug);
+    if(resetIndex>=0) relevant=events.slice(resetIndex+1);
+  }
+  return String(relevant.filter(event=>event.marker!=='X').length+1);
+}
+function addSingleDrug(){
+  const drug=drugById($('drugSelect').value);
+  const dose=drug.dose===null?null:Number($('doseInput').value);
+  if(drug.dose!==null&&(!Number.isFinite(dose)||dose<=0)){
+    showToast('Enter a valid dose greater than zero.');
+    $('doseInput').focus();
+    return;
+  }
+  if(drug.dose!==null&&dose<drug.min){
+    showToast(`The minimum dose in this module is ${formatNumber(drug.min)} ${drug.unit}.`);
+    $('doseInput').focus();
+    return;
+  }
+  const last=sim.events[sim.events.length-1];
+  let time=last?last.time+last.duration+1.15:1;
+  if(sim.time>time-0.35) time=sim.time+0.45;
+  const nextMarker=nextNonblockerMarker(sim.events);
+  const event=createEvent(drug,dose,time,sim.flags,isBlocker(drug)?'X':nextMarker);
+  sim.events.push(event);
+  sim.selectedEvent=event.id;
+  renderEventChips();
+  updateObservation(event);
+  updateStateUI();
+  updatePreview();
+  updateEmptyState();
+  if(reducedMotion){sim.time=endTime();sim.playing=false;drawMainTrace();updatePlaybackUI();}
+  else startPlayback();
+}
+function runProtocol(){
+  stopPlayback();
+  sim=freshState();
+  sim.speed=Number($('speedSelect').value);
+  sim.events=protocolEvents();
+  sim.flags=freshState().flags;
+  for(const event of sim.events){updateFlags(drugById(event.drugId),event.dose,sim.flags);}
+  sim.selectedEvent=sim.events.length?sim.events[sim.events.length-1].id:null;
+  renderEventChips();
+  updateStateUI();
+  updatePreview();
+  updateEmptyState();
+  updateObservation(null,'The standard worksheet sequence is running. Select any addition in the sequence log to inspect its individual response.');
+  if(reducedMotion){sim.time=endTime();drawMainTrace();updatePlaybackUI();}
+  else{sim.time=0;startPlayback();}
+  showToast('Standard protocol loaded in worksheet order.');
+}
+function resetSimulation(){
+  stopPlayback();
+  const speed=Number($('speedSelect').value);
+  sim=freshState();
+  sim.speed=speed;
+  renderEventChips();
+  updateStateUI();
+  updatePreview();
+  updateEmptyState();
+  updateObservation();
+  drawMainTrace();
+  updatePlaybackUI();
+}
+function undoLast(){
+  if(!sim.events.length) return;
+  stopPlayback();
+  sim.events.pop();
+  sim.selectedEvent=sim.events.length?sim.events[sim.events.length-1].id:null;
+  sim.flags=freshState().flags;
+  for(const event of sim.events){const drug=drugById(event.drugId);updateFlags(drug,event.dose,sim.flags);}
+  sim.time=Math.min(sim.time,endTime());
+  renderEventChips();
+  updateStateUI();
+  updatePreview();
+  updateEmptyState();
+  updateObservation(sim.events[sim.events.length-1]||null);
+  drawMainTrace();
+  updatePlaybackUI();
+}
+function startPlayback(){
+  if(!sim.events.length){showToast('Add a drug or run the standard protocol first.');return;}
+  if(sim.time>=endTime()) sim.time=0;
+  sim.playing=true;
+  lastFrameTime=null;
+  updatePlaybackUI();
+  if(animationFrame===null) animationFrame=requestAnimationFrame(tick);
+}
+function stopPlayback(){
+  sim.playing=false;
+  if(animationFrame!==null){cancelAnimationFrame(animationFrame);animationFrame=null;}
+  lastFrameTime=null;
+  updatePlaybackUI();
+}
+function tick(timestamp){
+  animationFrame=null;
+  if(!sim.playing) return;
+  if(lastFrameTime===null) lastFrameTime=timestamp;
+  const delta=Math.min(0.06,(timestamp-lastFrameTime)/1000);
+  lastFrameTime=timestamp;
+  sim.time=Math.min(endTime(),sim.time+delta*sim.speed);
+  drawMainTrace();
+  $('timeReadout').textContent=`t = ${sim.time.toFixed(1)} s`;
+  if(sim.time>=endTime()){
+    sim.playing=false;lastFrameTime=null;updatePlaybackUI();
+  }else animationFrame=requestAnimationFrame(tick);
+}
+function updatePlaybackUI(){
+  $('playIcon').textContent=sim.playing?'Ⅱ':'▶';
+  $('playBtn').setAttribute('aria-label',sim.playing?'Pause simulation':'Play simulation');
+  $('undoBtn').disabled=sim.events.length===0;
+  $('timeReadout').textContent=`t = ${sim.time.toFixed(1)} s`;
+}
+function updateEmptyState(){
+  $('traceEmpty').classList.toggle('hidden',sim.events.length>0||sim.showReference);
+}
+function updateObservation(event=null,custom=''){
+  if(custom){$('observationLabel').textContent='Protocol running';$('observationText').textContent=custom;return;}
+  const selected=event||sim.events.find(e=>e.id===sim.selectedEvent);
+  $('observationLabel').textContent=selected?`Response ${selected.marker}`:'Expected observation';
+  $('observationText').textContent=selected?selected.observation:exp().expected;
+}
+function renderEventChips(){
+  $('eventCount').textContent=`${sim.events.length} event${sim.events.length===1?'':'s'}`;
+  if(!sim.events.length){$('eventChips').innerHTML='<div class="event-empty">Drug additions and their responses will appear here.</div>';return;}
+  $('eventChips').innerHTML='';
+  for(const event of sim.events){
+    const button=document.createElement('button');
+    button.type='button';button.className='event-chip';button.dataset.eventId=event.id;
+    button.setAttribute('aria-pressed',String(sim.selectedEvent===event.id));
+    const marker=document.createElement('span');marker.className='marker';marker.textContent=event.marker;
+    const text=document.createElement('span');text.textContent=`${event.name} · ${event.doseLabel}`;
+    button.append(marker,text);
+    button.addEventListener('click',()=>{sim.selectedEvent=event.id;renderEventChips();updateObservation(event);drawMainTrace();});
+    $('eventChips').appendChild(button);
+  }
+}
+function stateRows(){
+  const f=sim.flags;
+  switch(exp().id){
+    case 'gdr':return [['Receptor','Nm available'],['Dosing','Non-cumulative'],['Wash','Between additions']];
+    case 'phys-ach':return [['AChE activity',f.phys?'Inhibited':'Baseline',f.phys],['Post-block ACh',String(f.physAchCount)],['Receptor','Nm']];
+    case 'muscarinic-pot':return [['AChE activity',f.phys?'Inhibited':'Baseline',f.phys],['Pilocarpine','Esterase resistant'],['Carbachol','Esterase resistant']];
+    case 'competitive':return [['Nm block',f.dtc?'d-TC present':'None',f.dtc],['Antagonism','Competitive'],['Emax','Surmountable']];
+    case 'ach-actions':return [['Muscarinic receptors',f.atropine?'Atropine blocked':'Available',f.atropine],['Nicotinic NN','Not blocked'],['High-dose ACh','500 µg = 0.5 mg']];
+    case 'dale':return [['α₁ / α₂ receptors',f.tolazoline?'Tolazoline blocked':'Available',f.tolazoline],['β₂ receptors','Available'],['β₁ cardiac effects','Persist']];
+    case 'tachy':return [['Tyramine doses',String(f.tyramineCount)],['Releasable NA pool',f.tyramineCount===0?'Ready':f.tyramineCount<3?'Depleting':'Markedly depleted',f.tyramineCount>0],['Interval','5 minutes']];
+    default:return [];
+  }
+}
+function updateStateUI(){
+  $('tissueState').innerHTML='';
+  for(const [label,value,active] of stateRows()){
+    const row=document.createElement('div');row.className='state-row';
+    const l=document.createElement('span');l.textContent=label;
+    const v=document.createElement('span');v.className=`state-value${active?' active':''}`;v.textContent=value;
+    row.append(l,v);$('tissueState').appendChild(row);
+  }
+}
+function buildNavigation(){
+  $('experimentNav').innerHTML='';
+  experiments.forEach((item,index)=>{
+    const button=document.createElement('button');button.type='button';button.className='experiment-btn';button.setAttribute('aria-current',String(index===currentExp));
+    const number=document.createElement('span');number.className='exp-number';number.textContent=String(index+1).padStart(2,'0');
+    const text=document.createElement('span');const title=document.createElement('span');title.className='exp-nav-title';title.textContent=item.nav;
+    const meta=document.createElement('span');meta.className='exp-nav-meta';meta.textContent=item.navMeta;text.append(title,meta);button.append(number,text);
+    button.addEventListener('click',()=>switchExperiment(index));$('experimentNav').appendChild(button);
+  });
+}
+function switchExperiment(index){
+  if(index===currentExp) return;
+  stopPlayback();currentExp=index;activeTab='mechanism';sim=freshState();renderExperiment();
+}
+function renderExperiment(){
+  const e=exp();
+  document.title=`${e.title} — PharmTrace`;
+  [...$('experimentNav').children].forEach((button,index)=>button.setAttribute('aria-current',String(index===currentExp)));
+  $('expEyebrow').textContent=e.eyebrow;$('expTitle').textContent=e.title;$('expObjective').textContent=e.objective;
+  $('prepTags').innerHTML='';e.prep.forEach(text=>{const tag=document.createElement('span');tag.className='tag';tag.textContent=text;$('prepTags').appendChild(tag);});
+  $('traceTitle').textContent=e.action==='Add to tissue'?'Kymograph · simulated contracture':'Blood-pressure trace · simulated response';
+  $('traceSubtitle').textContent=e.traceSubtitle;$('drugTrayTitle').textContent=e.action==='Add to tissue'?'Add to the preparation':'Administer an IV bolus';
+  $('drcPanel').classList.toggle('visible',e.id==='gdr');
+  $('drugSelect').innerHTML='';e.drugs.forEach(drug=>{const option=document.createElement('option');option.value=drug.id;option.textContent=drug.name;$('drugSelect').appendChild(option);});
+  updateDrugUI();referenceEvents=protocolEvents();renderEventChips();updateStateUI();updateEmptyState();updateObservation();renderTab();updatePlaybackUI();
+  requestAnimationFrame(()=>{drawMainTrace();if(e.id==='gdr')drawDoseCharts();});
+}
+function updateDrugUI(){
+  const drug=drugById($('drugSelect').value)||exp().drugs[0];
+  if(!drug) return;
+  $('drugSelect').value=drug.id;
+  $('doseField').hidden=drug.dose===null;
+  $('doseInput').value=drug.dose===null?'':drug.dose;
+  $('doseInput').step=drug.step||0.25;$('doseInput').min=drug.min||0.01;
+  $('doseUnit').textContent=drug.unit;$('doseHint').textContent=drug.hint;
+  $('rangeField').classList.toggle('visible',exp().id==='gdr'&&drug.id==='ach');
+  if(exp().id==='gdr') $('doseRange').value=drug.dose;
+  const shortName=drug.id==='ach'?'ACh':drug.name.split(' (')[0];
+  $('addDrugBtn').textContent=`${exp().action} · ${shortName}`;
+  updatePreview();
+}
+function updatePreview(){
+  const drug=drugById($('drugSelect').value);
+  if(!drug) return;
+  const dose=drug.dose===null?null:Number($('doseInput').value);
+  if(drug.dose!==null&&(!Number.isFinite(dose)||dose<=0)){$('previewText').textContent='Enter a valid dose to calculate the response.';$('doseClass').hidden=true;return;}
+  const response=responseFor(drug,dose,cloneFlags(sim.flags));
+  $('previewText').textContent=response.responseText;
+  const showClass=exp().id==='gdr'&&drug.id==='ach';
+  $('doseClass').hidden=!showClass;
+  if(showClass){$('doseClass').textContent=doseClass(dose);$('doseClass').setAttribute('aria-label',`Dose class: ${doseClass(dose)}`);}
+}
+function renderTab(){
+  document.querySelectorAll('.tab-btn').forEach(button=>{
+    const selected=button.dataset.tab===activeTab;button.setAttribute('aria-selected',String(selected));button.tabIndex=selected?0:-1;
+  });
+  const selectedTab=document.querySelector(`.tab-btn[data-tab="${activeTab}"]`);
+  $('tabContent').setAttribute('aria-labelledby',selectedTab.id);
+  $('tabContent').innerHTML='';
+  if(activeTab==='mechanism'){
+    const heading=document.createElement('h2');heading.textContent='Mechanism and interpretation';
+    const list=document.createElement('ul');list.className='clean-list';exp().mechanism.forEach(text=>{const li=document.createElement('li');li.textContent=text;list.appendChild(li);});
+    $('tabContent').append(heading,list);
+  }else if(activeTab==='qa'){
+    const heading=document.createElement('h2');heading.textContent='Worksheet questions, answered';$('tabContent').appendChild(heading);
+    exp().qas.forEach(([question,answer],index)=>{const details=document.createElement('details');if(index===0)details.open=true;const summary=document.createElement('summary');summary.textContent=question;const body=document.createElement('div');body.className='detail-answer';body.textContent=answer;details.append(summary,body);$('tabContent').appendChild(details);});
+  }else{
+    const heading=document.createElement('h2');heading.textContent='Clinical correlation';
+    const list=document.createElement('ul');list.className='clean-list';exp().clinical.forEach(text=>{const li=document.createElement('li');li.textContent=text;list.appendChild(li);});$('tabContent').append(heading,list);
+  }
+}
+function showToast(message){
+  clearTimeout(toastTimer);$('toast').textContent=message;$('toast').classList.add('visible');toastTimer=setTimeout(()=>$('toast').classList.remove('visible'),2600);
+}
+function openDialog(id){$(id).showModal();}
+function exportTrace(){
+  drawMainTrace();
+  mainCanvas.toBlob(blob=>{
+    if(!blob){showToast('The trace could not be exported.');return;}
+    const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download=`Experiment-${currentExp+1}-${exp().id}-trace.png`;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);showToast('Trace downloaded as PNG.');
+  },'image/png');
+}
+
+$('drugSelect').addEventListener('change',updateDrugUI);
+$('doseInput').addEventListener('input',()=>{if(exp().id==='gdr'){$('doseRange').value=Math.max(0.25,Math.min(16,Number($('doseInput').value)||0.25));}updatePreview();});
+$('doseRange').addEventListener('input',()=>{$('doseInput').value=$('doseRange').value;updatePreview();});
+$('addDrugBtn').addEventListener('click',addSingleDrug);
+$('protocolBtn').addEventListener('click',runProtocol);
+$('resetBtn').addEventListener('click',()=>{resetSimulation();showToast('Experiment reset.');});
+$('undoBtn').addEventListener('click',undoLast);
+$('playBtn').addEventListener('click',()=>{if(sim.playing)stopPlayback();else startPlayback();});
+$('speedSelect').addEventListener('change',()=>{sim.speed=Number($('speedSelect').value);});
+$('referenceBtn').addEventListener('click',()=>{
+  sim.showReference=!sim.showReference;$('referenceBtn').setAttribute('aria-pressed',String(sim.showReference));updateEmptyState();drawMainTrace();
+});
+$('exportBtn').addEventListener('click',exportTrace);
+$('helpBtn').addEventListener('click',()=>openDialog('helpDialog'));
+$('glossaryBtn').addEventListener('click',()=>openDialog('glossaryDialog'));
+document.querySelectorAll('.dialog-close').forEach(button=>button.addEventListener('click',()=>button.closest('dialog').close()));
+document.querySelectorAll('dialog').forEach(dialog=>dialog.addEventListener('click',event=>{if(event.target===dialog){const rect=dialog.getBoundingClientRect();if(event.clientX<rect.left||event.clientX>rect.right||event.clientY<rect.top||event.clientY>rect.bottom)dialog.close();}}));
+document.querySelectorAll('.tab-btn').forEach(button=>{
+  button.addEventListener('click',()=>{activeTab=button.dataset.tab;renderTab();});
+  button.addEventListener('keydown',event=>{
+    if(!['ArrowLeft','ArrowRight'].includes(event.key))return;
+    event.preventDefault();const tabs=[...document.querySelectorAll('.tab-btn')];const index=tabs.indexOf(button);const next=event.key==='ArrowRight'?(index+1)%tabs.length:(index-1+tabs.length)%tabs.length;tabs[next].click();tabs[next].focus();
+  });
+});
+function prepareCanvas(canvas){
+  const rect=canvas.getBoundingClientRect();
+  const dpr=Math.min(2,window.devicePixelRatio||1);
+  const width=Math.max(280,Math.round(rect.width));
+  const height=Math.max(180,Math.round(rect.height));
+  const pixelWidth=Math.round(width*dpr),pixelHeight=Math.round(height*dpr);
+  if(canvas.width!==pixelWidth||canvas.height!==pixelHeight){canvas.width=pixelWidth;canvas.height=pixelHeight;}
+  const ctx=canvas.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,width,height);
+  return {ctx,width,height};
+}
+function shapeValue(event,u){
+  if(u<=0||u>=1) return 0;
+  const a=event.amplitude;
+  if(event.shape==='contracture'){
+    if(u<0.08) return 0;
+    if(u<0.72){const v=(u-0.08)/0.64;return a*(1-Math.pow(1-v,1.65));}
+    if(u<0.79) return a*(1-(u-0.72)/0.07);
+    return 0;
+  }
+  if(event.shape==='pressorBroad') return a*Math.pow(Math.sin(Math.PI*u),1.2);
+  if(event.shape==='epiBiphasic'){
+    if(u<0.58) return a*Math.sin(Math.PI*u/0.58);
+    return (event.dip||-0.3)*Math.sin(Math.PI*(u-0.58)/0.42);
+  }
+  if(u<0.13) return a*(u/0.13);
+  return a*Math.pow(1-(u-0.13)/0.87,1.35);
+}
+function traceValue(time,events){
+  for(const event of events){
+    if(time>=event.time&&time<=event.time+event.duration) return shapeValue(event,(time-event.time)/event.duration);
+  }
+  return 0;
+}
+function drawTraceSeries(ctx,events,until,layout,yMap,xMap,color,dashed=false){
+  if(!events.length||until<=0)return;
+  ctx.save();ctx.strokeStyle=color;ctx.lineWidth=dashed?1.7:2.35;ctx.lineJoin='round';ctx.lineCap='round';ctx.setLineDash(dashed?[6,5]:[]);ctx.beginPath();
+  const end=Math.min(until,endTime(events));const steps=Math.max(240,Math.ceil(end*28));
+  for(let i=0;i<=steps;i++){
+    const t=end*i/steps;const x=xMap(t),y=yMap(traceValue(t,events));
+    if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+  }
+  ctx.stroke();ctx.restore();
+}
+function drawMainTrace(){
+  const {ctx,width:w,height:h}=prepareCanvas(mainCanvas);
+  const e=exp();
+  ctx.fillStyle='#fdfdfd';ctx.fillRect(0,0,w,h);
+  const left=w<430?48:60,right=18,top=22,bottom=64;
+  const plotW=w-left-right,plotH=h-top-bottom;
+  const allEnd=Math.max(endTime(),sim.showReference?endTime(referenceEvents):0);
+  const xMax=Math.max(sim.events.length||sim.showReference?allEnd+0.5:24,12);
+  const xMap=t=>left+(t/xMax)*plotW;
+  const yMap=v=>top+(e.yMax-v)/(e.yMax-e.yMin)*plotH;
+  ctx.font='11px Consolas, monospace';ctx.textBaseline='middle';
+  const yTicks=5;
+  for(let i=0;i<=yTicks;i++){
+    const value=e.yMin+(e.yMax-e.yMin)*i/yTicks;const y=yMap(value);
+    ctx.strokeStyle=Math.abs(value)<0.0001?'#a7a7a7':'#e5e5e5';ctx.lineWidth=1;ctx.setLineDash([]);ctx.beginPath();ctx.moveTo(left,y);ctx.lineTo(w-right,y);ctx.stroke();
+    ctx.fillStyle='#686868';ctx.textAlign='right';ctx.fillText(Math.abs(value)<0.0001?'0':value.toFixed(1),left-8,y);
+  }
+  const xStep=xMax>42?10:5;
+  for(let t=0;t<=xMax;t+=xStep){
+    const x=xMap(t);ctx.strokeStyle='#ededed';ctx.beginPath();ctx.moveTo(x,top);ctx.lineTo(x,h-bottom);ctx.stroke();
+    ctx.fillStyle='#686868';ctx.textAlign='center';ctx.fillText(String(t),x,h-bottom+16);
+  }
+  ctx.fillStyle='#686868';ctx.textAlign='right';ctx.fillText('time (s)',w-right,11);
+  ctx.save();ctx.translate(14,top+plotH/2);ctx.rotate(-Math.PI/2);ctx.textAlign='center';ctx.fillStyle='#555';ctx.fillText(e.yLabel,0,0);ctx.restore();
+  if(sim.showReference) drawTraceSeries(ctx,referenceEvents,endTime(referenceEvents),null,yMap,xMap,'#008dbb',true);
+  if(sim.events.length) drawTraceSeries(ctx,sim.events,sim.time,null,yMap,xMap,'#282828',false);
+  const selected=sim.events.find(event=>event.id===sim.selectedEvent);
+  if(selected){
+    const x=xMap(selected.time);ctx.save();ctx.strokeStyle='#00A0E6';ctx.globalAlpha=.42;ctx.setLineDash([3,4]);ctx.beginPath();ctx.moveTo(x,top);ctx.lineTo(x,h-bottom);ctx.stroke();ctx.restore();
+  }
+  for(const event of sim.events){
+    if(event.time>sim.time)continue;
+    const x=xMap(event.time),arrowY=h-29;
+    ctx.fillStyle=event.id===sim.selectedEvent?'#007da9':'#282828';ctx.beginPath();ctx.moveTo(x,arrowY-8);ctx.lineTo(x-4,arrowY);ctx.lineTo(x+4,arrowY);ctx.closePath();ctx.fill();ctx.fillRect(x-1,arrowY-1,2,7);
+    ctx.font='bold 11px Consolas, monospace';ctx.textAlign='center';ctx.fillText(event.marker,x,h-8);
+  }
+  if(sim.playing&&sim.time>0){
+    const x=xMap(Math.min(sim.time,xMax));ctx.fillStyle='#00A0E6';ctx.beginPath();ctx.arc(x,top+3,3,0,Math.PI*2);ctx.fill();
+  }
+  mainCanvas.setAttribute('aria-label',`${e.title}. ${sim.events.length} drug additions. ${sim.events.length?sim.events[sim.events.length-1].responseText:e.expected}`);
+}
+function drawDoseCharts(){drawDoseChart($('arithmeticDrc'),false);drawDoseChart($('logDrc'),true);}
+function drawDoseChart(canvas,isLog){
+  if(!canvas||!canvas.getBoundingClientRect().width)return;
+  const {ctx,width:w,height:h}=prepareCanvas(canvas);ctx.fillStyle='#fdfdfd';ctx.fillRect(0,0,w,h);
+  const left=40,right=16,top=22,bottom=40,pw=w-left-right,ph=h-top-bottom;
+  const xMin=isLog?Math.log2(0.25):0,xMax=isLog?Math.log2(16):16;
+  const xMap=d=>left+(((isLog?Math.log2(d):d)-xMin)/(xMax-xMin))*pw;
+  const yMap=v=>top+(1.1-v)/1.1*ph;
+  ctx.font='10px Consolas, monospace';ctx.textBaseline='middle';
+  for(let v=0;v<=1.01;v+=0.25){const y=yMap(v);ctx.strokeStyle=v===0?'#aaa':'#e7e7e7';ctx.beginPath();ctx.moveTo(left,y);ctx.lineTo(w-right,y);ctx.stroke();ctx.fillStyle='#666';ctx.textAlign='right';ctx.fillText(v.toFixed(2).replace(/0$/,''),left-6,y);}
+  const ticks=isLog?(w<370?[0.25,1,4,16]:[0.25,0.5,1,2,4,8,16]):[0,4,8,12,16];
+  ticks.forEach(d=>{const x=xMap(Math.max(d,0.25));ctx.fillStyle='#666';ctx.textAlign='center';ctx.fillText(formatNumber(d),x,h-bottom+15);});
+  ctx.strokeStyle='#282828';ctx.lineWidth=2;ctx.beginPath();
+  for(let i=0;i<=140;i++){const f=i/140;const dose=isLog?Math.pow(2,xMin+f*(xMax-xMin)):0.25+f*(16-0.25);const x=xMap(dose),y=yMap(achGdr(dose));if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);}ctx.stroke();
+  const ec50=2.15;ctx.save();ctx.strokeStyle='#00A0E6';ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(xMap(ec50),yMap(0));ctx.lineTo(xMap(ec50),yMap(.5));ctx.lineTo(left,yMap(.5));ctx.stroke();ctx.restore();
+  [0.25,0.5,1,2,4,8,16].forEach(d=>{ctx.fillStyle='#fdfdfd';ctx.strokeStyle='#007da9';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(xMap(d),yMap(achGdr(d)),3,0,Math.PI*2);ctx.fill();ctx.stroke();});
+  ctx.fillStyle='#666';ctx.textAlign='center';ctx.fillText(isLog?'ACh dose (µg · log₂ scale)':'ACh dose (µg)',left+pw/2,h-3);
+  ctx.save();ctx.translate(10,top+ph/2);ctx.rotate(-Math.PI/2);ctx.fillText('Response / Emax',0,0);ctx.restore();
+}
+function scheduleDraw(){
+  if(doseChartFrame!==null)return;
+  doseChartFrame=requestAnimationFrame(()=>{doseChartFrame=null;drawMainTrace();if(exp().id==='gdr')drawDoseCharts();});
+}
+const resizeObserver=new ResizeObserver(scheduleDraw);
+resizeObserver.observe(mainCanvas);resizeObserver.observe($('arithmeticDrc'));resizeObserver.observe($('logDrc'));
+window.addEventListener('resize',scheduleDraw);
+
+buildNavigation();
+renderExperiment();
+</script>
+</body>
+</html>
