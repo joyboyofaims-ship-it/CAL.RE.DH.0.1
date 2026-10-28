@@ -50,14 +50,15 @@ th,td{padding:5px 6px;border-bottom:1px solid var(--bd)}th{color:var(--mu);posit
 </div>
 <div class="cc"><div class="st">Control panel</div>
  <select id="dr">
-  <option value="kcl">Potassium chloride (diastolic arrest)</option>
-  <option value="cacl2">Calcium chloride (systolic arrest)</option>
-  <option value="epi">Adrenaline (rate and force up)</option>
-  <option value="norepi">Noradrenaline (rate and force up)</option>
-  <option value="isop">Isoprenaline (rate and force up)</option>
-  <option value="prop">Propranolol (beta blocker)</option>
-  <option value="ach">Acetylcholine (diastolic arrest)</option>
-  <option value="atrop">Atropine (muscarinic blocker)</option>
+  <option value="kcl">Potassium chloride 2000 mcg (diastolic arrest)</option>
+  <option value="cacl2">Calcium chloride 2000 mcg (systolic arrest)</option>
+  <option value="epi">Adrenaline 2 mcg (rate and force up)</option>
+  <option value="norepi">Noradrenaline 2 mcg (force up)</option>
+  <option value="isop">Isoprenaline 2 mcg (rate and force up)</option>
+  <option value="prop">Propranolol 200 mcg (cardiac depressant)</option>
+  <option value="ach">Acetylcholine 2 mcg (cardiac depressant)</option>
+  <option value="achH">Acetylcholine HIGH dose (diastolic arrest)</option>
+  <option value="atrop">Atropine 20 mcg (muscarinic blocker)</option>
  </select>
  <div class="g2"><button class="b p" id="bI">Inject and mark drum</button><button class="b s" id="bW">Wash</button></div>
  <button class="b d" id="bD">&#9654; Play full demo sequence</button>
@@ -72,14 +73,15 @@ var PPS=20,W=5000;
 var D={
  kcl:{n:"KCl",f:"Potassium chloride",rate:0,amp:0,tone:-20,st:"Diastolic"},
  cacl2:{n:"CaCl2",f:"Calcium chloride",rate:0,amp:0,tone:48,st:"Systolic"},
- epi:{n:"Adrenaline",f:"Adrenaline",rate:88,amp:145,tone:8,bl:"prop"},
- norepi:{n:"Noradrenaline",f:"Noradrenaline",rate:78,amp:135,tone:6,bl:"prop"},
- isop:{n:"Isoprenaline",f:"Isoprenaline",rate:98,amp:155,tone:4,bl:"prop"},
- prop:{n:"Propranolol",f:"Propranolol",rate:50,amp:65,tone:0,blk:"prop"},
- ach:{n:"ACh",f:"Acetylcholine",rate:0,amp:0,tone:-14,st:"Diastolic",bl:"atrop"},
- atrop:{n:"Atropine",f:"Atropine",rate:62,amp:100,tone:0,blk:"atrop"}
+ epi:{n:"Adrenaline",f:"Adrenaline",rate:68,amp:145,tone:8,eff:"Stimulated",bl:"prop"},
+ norepi:{n:"Noradrenaline",f:"Noradrenaline",rate:58,amp:135,tone:6,eff:"Stimulated",bl:"prop"},
+ isop:{n:"Isoprenaline",f:"Isoprenaline",rate:84,amp:155,tone:4,eff:"Stimulated",bl:"prop"},
+ prop:{n:"Propranolol",f:"Propranolol",rate:44,amp:65,tone:-6,eff:"Depressed",blk:"prop"},
+ ach:{n:"ACh 2mcg",f:"Acetylcholine 2 mcg",rate:41,amp:60,tone:-6,eff:"Depressed",bl:"atrop"},
+ achH:{n:"ACh high",f:"Acetylcholine HIGH dose",rate:0,amp:0,tone:-14,st:"Diastolic",bl:"atrop"},
+ atrop:{n:"Atropine",f:"Atropine",rate:62,amp:100,tone:0,eff:"Slight rise",blk:"atrop"}
 };
-var BASE={f:"Normal (control)",rate:60,amp:100,tone:0,st:"None",note:""};
+var BASE={f:"Normal (control)",rate:60,amp:100,tone:0,st:"None",note:"",eff:""};
 var T=Object.assign({},BASE),cur={rate:60,amp:100,tone:0},blk={prop:0,atrop:0};
 var paused=false,follow=true,zx=1,speed=1,xPos=0,total=0,phase=0,acc=0,lastYf=.7,demoId=0;
 var tf=[],marks=[];
@@ -128,16 +130,17 @@ function ui(){
  if(T.st==="Systolic"&&arr){e.textContent="Systolic arrest";e.style.color="var(--bad)"}
  else if(T.st==="Diastolic"&&arr){e.textContent="Diastolic arrest";e.style.color="var(--warn)"}
  else if(T.note){e.textContent="Blocked";e.style.color="#58a6ff"}
+ else if(T.eff==="Depressed"){e.textContent="Depressed";e.style.color="var(--warn)"}
  else{e.textContent=T.st==="None"?"Active":"Changing";e.style.color="#3fb950"}}
 
 function apply(k){
  if(k==="wash"){blk.prop=0;blk.atrop=0;T=Object.assign({},BASE,{f:"Washout"});return}
  var d=D[k];
  if(d.bl&&blk[d.bl]){T=Object.assign({},T,{f:d.f+" (blocked)",note:"No response"});return}
- T={f:d.f,rate:d.rate,amp:d.amp,tone:d.tone,st:d.st||"None",note:""};
+ T={f:d.f,rate:d.rate,amp:d.amp,tone:d.tone,st:d.st||"None",note:"",eff:d.eff||""};
  if(d.blk)blk[d.blk]=1}
 function log(){
- var r=document.createElement("tr"),s=T.st!=="None"?T.st+" arrest":(T.note||"Regular");
+ var r=document.createElement("tr"),s=T.st!=="None"?T.st+" arrest":(T.note||T.eff||"Regular");
  [T.f,Math.round(T.rate),Math.round(T.amp)+"%",sgn(T.tone),s].forEach(function(v){var c=document.createElement("td");c.textContent=v;r.appendChild(c)});
  $("tb").appendChild(r);r.scrollIntoView({block:"nearest"})}
 function mark(t){var r=marks.length%2;drawMark(xPos,t,r);marks.push({x:xPos,t:t,r:r})}
@@ -169,7 +172,7 @@ function waitPx(n,id){return new Promise(function(res){var s=total,t=setInterval
  if(id!==demoId||total-s>=n){clearInterval(t);res()}},50)})}
 var SEQ=[["kcl","KCl",80],["wash","Wash",50],["cacl2","CaCl2",80],["wash","Wash",50],
  ["epi","Adrenaline",80],["wash","Wash",50],["prop","Propranolol",70],["epi","Adrenaline+Prop",80],["wash","Wash",50],
- ["ach","ACh",70],["wash","Wash",50],["atrop","Atropine",70],["ach","ACh+Atropine",80],["wash","Wash",50]];
+ ["ach","ACh 2mcg",80],["achH","ACh high",90],["wash","Wash",60],["atrop","Atropine",70],["achH","ACh+Atropine",80],["wash","Wash",50]];
 $("bD").onclick=async function(){
  var id=++demoId;paused=false;follow=true;$("bP").textContent="Pause";$("bP").classList.remove("on");
  reset();await waitPx(50,id);
