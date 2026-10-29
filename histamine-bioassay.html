@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0f766e">
+<link rel="icon" href="data:,">
 <title>Histamine Bioassay Simulator</title>
 <script src="https://cdn.tailwindcss.com/3.4.17"></script>
 <script>tailwind.config = { darkMode: ['selector', '[data-theme="dark"]'] };</script>
@@ -122,7 +123,7 @@ canvas{display:block}
     <h2 class="text-sm font-semibold mb-3 text-slate-700 dark:text-slate-200 uppercase tracking-wider">2. Concentration Calculation &amp; Analysis</h2>
     <div class="seg-btns">
       <button id="mMatch" class="active">Matching Method</button>
-      <button id="mBr">Bracketing Method (Log-Dose)</button>
+      <button id="mBr">Interpolation Method (Log-Dose)</button>
     </div>
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
       <div id="stdBox">
@@ -157,10 +158,11 @@ canvas{display:block}
       <p><b>1. Matching Method:</b>
       <br>Find a standard volume (V<sub>s</sub>) of known concentration (A<sub>s</sub>) giving the same response as the test volume (V<sub>t</sub>).
       <br><code class="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-xs font-mono">Unknown Conc (A_t) = (A_s × V_s) / V_t</code></p>
-      <p><b>2. Bracketing Method (Interpolation):</b>
+      <p><b>2. Interpolation Method:</b>
       <br>Choose a lower standard (S<sub>1</sub>) and higher standard (S<sub>2</sub>) so the test response (R<sub>t</sub>) lies between R<sub>1</sub> and R<sub>2</sub>. Using semi-log dose-response linearity:
       <br><code class="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-xs font-mono">Log(Dose_t) = Log(Dose_1) + [(R_t - R_1)/(R_2 - R_1)] × [Log(Dose_2) - Log(Dose_1)]</code></p>
-      <p><b>Valid Range:</b> Responses below 2.0 mm (&lt;4.4% Emax) or at the 45 mm ceiling (100% Emax) are outside the linear range and flagged as inaccurate.</p>
+      <p><b>Working Range:</b> Use the near-linear middle portion of the log dose–response curve, approximately 20–80% of maximum, for interpolation. Responses outside this portion or at the 42 mm plateau are flagged.</p>
+      <p><b>Simulation Data &amp; Assumptions:</b> Responses are anchored to the ideal observations for a 10 µg/mL histamine standard: 0.1, 0.2, 0.4, 0.8, 1.6 and 3.2 mL give 7, 16, 22, 34, 42 and 42 mm, respectively. Values between these doses use log-dose interpolation. Below 1 µg, the tracing uses a conservative zero-response display when the extrapolated response would be negative; this is a display convention, not a measured threshold. Generated unknown concentrations, the 1 mm matching tolerance and the 10% score threshold are practice-simulator conventions, not published laboratory acceptance criteria.</p>
     </div>
   </details>
 
@@ -169,12 +171,12 @@ canvas{display:block}
     <p class="text-xs mb-3" style="color:var(--mute)">Tap a question to open the answer. Written to match standard pharmacology textbook content (KDT).</p>
 
     <details class="qa"><summary>1. Why is guinea-pig ileum preferred for histamine bioassay?</summary><div class="ans">
-      <div class="key">Because it is the most sensitive, stable and reproducible smooth-muscle preparation for histamine.</div>
+      <div class="key">Because it is highly sensitive to histamine and gives graded, reproducible H<sub>1</sub>-mediated contractions when properly maintained.</div>
       <ul>
         <li><b>Very high sensitivity:</b> it is rich in H<sub>1</sub> receptors and contracts to histamine in the nanogram range, so even a tiny amount in a sample can be measured.</li>
-        <li><b>Graded, log-linear response:</b> the dose-response curve is straight over a useful middle range on a log-dose scale, which makes matching and bracketing easy and accurate.</li>
+        <li><b>Graded, log-linear response:</b> the dose-response curve is approximately straight over a useful middle range on a log-dose scale, which supports matching and interpolation assays.</li>
         <li><b>Stable baseline:</b> little spontaneous activity, and the tissue stays alive for hours in aerated Tyrode solution at 37 &deg;C.</li>
-        <li><b>Response can be proved to be histamine:</b> an H<sub>1</sub> blocker (mepyramine) abolishes it, and atropine in the bath removes any interference from acetylcholine in the sample.</li>
+        <li><b>H<sub>1</sub> mechanism can be tested:</b> an H<sub>1</sub> antagonist such as mepyramine competitively inhibits the contraction; atropine can be used to reduce muscarinic interference from acetylcholine in a sample.</li>
         <li><b>Practical:</b> cheap, easy to mount, and gives reproducible contractions on repeated doses (with a regular washout interval).</li>
       </ul>
       <div class="fun">Fun fact: the guinea pig is famously histamine-sensitive. In guinea pigs, anaphylaxis kills mainly by severe bronchospasm, which is why they are also a classic allergy model.</div>
@@ -244,18 +246,31 @@ canvas{display:block}
 
 <script>
 var $ = function (id) { return document.getElementById(id); };
-var MAXMM = 45, MINMM = 2.0, SLOT = 85, H = 240, BASE = 200, PX = 3.8;
+var MAXMM = 42, MINMM = MAXMM * 0.2, MAXLINEARMM = MAXMM * 0.8, SLOT = 85, H = 240, BASE = 200, PX = 3.8;
 var events = [], U = newUnknown(), mode = 'match', lastEstimate = null;
 
 function newUnknown() { return Math.round((2 + Math.random() * 18) * 10) / 10; }
 function f(n, d) { return Number(n).toFixed(d === undefined ? 2 : d); }
 
-// Log-linear dose-response: 2 ug -> 20 mm; each doubling adds 10 mm.
-// 0.5 ug or less -> 0 mm (below threshold); about 11.3 ug and above -> 45 mm ceiling.
+// Ideal observations for 10 ug/mL histamine: 0.1, 0.2, 0.4, 0.8,
+// 1.6 and 3.2 mL produce 7, 16, 22, 34, 42 and 42 mm, respectively.
+// Intermediate values use log-dose interpolation; values below 1 ug are
+// extrapolated only as a simulator convention, not as measured observations.
+var RESPONSE_POINTS = [[1, 7], [2, 16], [4, 22], [8, 34], [16, 42]];
 function mmFor(amountUg) {
   if (!(amountUg > 0)) return 0;
-  var response = 20 + 10 * Math.log2(amountUg / 2);
-  return Math.min(Math.max(response, 0), MAXMM);
+  if (amountUg >= 16) return MAXMM;
+  if (amountUg < 1) {
+    return Math.min(Math.max(7 + 9 * Math.log2(amountUg), 0), 7);
+  }
+  for (var i = 1; i < RESPONSE_POINTS.length; i++) {
+    var lo = RESPONSE_POINTS[i - 1], hi = RESPONSE_POINTS[i];
+    if (amountUg <= hi[0]) {
+      var fraction = Math.log2(amountUg / lo[0]) / Math.log2(hi[0] / lo[0]);
+      return lo[1] + fraction * (hi[1] - lo[1]);
+    }
+  }
+  return MAXMM;
 }
 
 function say(id, text, cls) {
@@ -275,7 +290,7 @@ $('btnHalf').onclick = function () {
 };
 
 // Quick volume chips
-[0.05, 0.1, 0.2, 0.4, 0.8, 1.6].forEach(function (v) {
+[0.1, 0.2, 0.4, 0.8, 1.6, 3.2].forEach(function (v) {
   var b = document.createElement('button');
   b.className = 'btn-ghost text-xs px-2.5 py-1';
   b.textContent = v + ' mL';
@@ -292,11 +307,7 @@ function addDose(type) {
   }
   say('msg', '');
   var totalDoseUg = (type === 'std' ? cs : U) * v;
-  var mm = mmFor(totalDoseUg);
-  if (mm > 0 && mm < MAXMM) {
-    mm = Math.min(Math.max(mm + (Math.random() - 0.5) * 0.6, 0), MAXMM);
-  }
-  mm = Math.round(mm * 10) / 10;
+  var mm = Math.round(mmFor(totalDoseUg) * 10) / 10;
   var pctEmax = Math.min(Math.round((mm / MAXMM) * 1000) / 10, 100);
   events.push({ type: type, vol: v, cs: type === 'std' ? cs : null, doseUg: totalDoseUg, mm: mm, pctEmax: pctEmax });
   render(true);
@@ -340,14 +351,14 @@ function drawKymograph(toEnd) {
     ctx.fillStyle = mute; ctx.textAlign = 'left'; ctx.font = '11px system-ui, sans-serif';
     ctx.fillText(m + ' mm (' + f((m / MAXMM) * 100, 1) + '%)', 6, y - 3);
   }
-  // Dashed 45 mm ceiling
+  // Dashed 42 mm maximum response
   y = BASE - MAXMM * PX;
   ctx.setLineDash([5, 4]);
   ctx.strokeStyle = mute;
   ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(reqWidth, y); ctx.stroke();
   ctx.setLineDash([]);
   ctx.fillStyle = mute; ctx.textAlign = 'left';
-  ctx.fillText('45 mm (100% Emax)', 6, y - 3);
+  ctx.fillText('42 mm (100% Emax)', 6, y - 3);
 
   ctx.strokeStyle = ink;
   ctx.lineWidth = 2;
@@ -442,8 +453,8 @@ function fillSelects() {
 }
 
 function flagRange(list) {
-  return list.some(function (e) { return e.mm < MINMM || e.mm >= MAXMM; })
-    ? '<br><span class="font-semibold">⚠ Warning:</span> a response is below 2.0 mm or at the 45 mm ceiling, outside the linear range, so the result may be inaccurate.'
+  return list.some(function (e) { return e.mm < MINMM || e.mm > MAXLINEARMM; })
+    ? '<br><span class="font-semibold">⚠ Warning:</span> a response lies outside the approximately 20–80% Emax working range, so the result may be inaccurate.'
     : '';
 }
 
