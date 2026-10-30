@@ -220,6 +220,7 @@ body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 system-ui,-a
 <button id="injectBtn">Inject drug / apply stimulus</button>
 <div class="row"><button class="ghost" id="resetBtn">New animal</button><button class="ghost" id="copyBtn">Copy results</button></div>
 <div class="row"><button class="ghost" id="washBtn">🧪 Washout blockers</button><button class="ghost" id="pdfBtn">📄 Export PDF</button></div>
+<div class="row" style="grid-template-columns:1fr"><button class="ghost" id="refreshBtn">&#128260; Refresh view (keeps your results)</button></div>
 <div class="hint">Progress is saved automatically on this device. Export PDF opens the print dialog: choose "Save as PDF".</div>
 <button class="ghost" id="soundBtn">🔇 Heartbeat sound: Off</button></div>
 <div class="card" id="vivaCard"><label>Viva question (Next picks one on your last drug if available)</label><div id="vQ">Tap Next to start.</div><div id="vOpts" hidden></div><div class="row3"><button class="ghost" id="vHint">💡 Hint</button><button class="ghost" id="vShow">Show answer</button><button id="vNext">Next ▶</button></div></div>
@@ -243,13 +244,14 @@ p16:{t:"Row 16: Atropine 1500 then ACh 150",a:["atropine",2,"Atropine 1500"],b:[
 p17:{t:"Row 17: Propranolol 1000 then Isoprenaline 3",a:["propranolol",1,"Propranolol 1000"],b:["iso",1,"Isoprenaline 3 after propranolol"]},
 p18:{t:"Row 18: Phentolamine 1000 then Adrenaline 3",a:["phentolamine",1,"Phentolamine 1000"],b:["adrenaline",1,"Adrenaline 3 after phentolamine"]},
 p19:{t:"Row 19: Phentolamine 1000 then Noradrenaline 3",a:["phentolamine",1,"Phentolamine 1000"],b:["norepi",1,"Noradrenaline 3 after phentolamine"]},
-p20:{t:"Row 20: Mepyramine 5000 then Histamine 3",a:["mepyramine",1,"Mepyramine 5000"],b:["histamine",1,"Histamine 3 after mepyramine"]}};
+p20:{t:"Row 20: Mepyramine 5000 then Histamine 3",a:["mepyramine",1,"Mepyramine 5000"],b:["histamine",1,"Histamine 3 after mepyramine"]},
+p21:{t:"Row 21: Propranolol 1000 then Adrenaline 3",a:["propranolol",1,"Propranolol 1000"],b:["adrenaline",1,"Adrenaline 3 after propranolol"]}};
 const PROT_DELAY=40;
 function satm(m){return m<=2?m:2+2*Math.log(m/2)}
 const BLK1=.99;
 function blk(m){const P=[[0,0],[.5,.8],[1,BLK1],[2,.995],[10,.999]];if(m<=0)return 0;if(m>=10)return .999;for(let i=1;i<P.length;i++)if(m<=P[i][0]){const a=P[i-1],b=P[i];return a[1]+(b[1]-a[1])*(m-a[0])/(b[0]-a[0])}return .999}
 function shortLbl(s){const t=s.split(" ");return /^[\d.]+$/.test(t[1]||"")?t[0]+" "+t[1]:t[0]}
-function mk(){return{cur:{...BASE},fx:[],vag:false,atH:0,atM:0,rem:0,rv:0,A:0,B:0,Af:0,Bf:0,pR:0,H1:0,H2:0,S:1,t:0,q:[],tr:null,rows:[],hist:[],marks:[],hacc:0,dead:null,dShown:0,tLM:0,tLH:0,tHM:0,tHH:0}}
+function mk(){return{cur:{...BASE},fx:[],vag:false,atH:0,atM:0,rem:0,rv:0,A:0,B:0,Af:0,Bf:0,pR:0,H1:0,H2:0,S:1,t:0,q:[],tr:null,rows:[],hist:[],marks:[],hacc:0,dead:null,dShown:0,tLM:0,tLH:0,tHM:0,tHH:0,corr:0,bad:false}}
 let S=mk();
 let LOGS=[];const KEY="dog-cal-v1";
 const $=id=>document.getElementById(id);
@@ -271,16 +273,16 @@ const lv=m<=.5?"low":(m<=1?"standard":"high");
 switch(k){
 case"adrenaline":case"epi_beta":{add("epi",{rise:4,tau:25});
 if(k==="epi_beta")return"Adrenaline 0.1 mcg/kg: no net change in HR or MAP (practical record, Ex. 10 row 4). Alpha pressor action needs a higher concentration. Some textbooks and slides show a small fall in BP at this dose.";
-let t="Adrenaline ("+lv+"): BP rises (alpha-1 vasoconstriction, beta-1 inotropy). ";
+let t="Adrenaline ("+lv+"): "+(s.B>.3&&s.A<=.3?"":"BP rises (alpha-1 vasoconstriction, beta-1 inotropy). ");
 t+=s.A>.3?"Alpha receptors are blocked: unopposed beta-2 vasodilation, BP falls (adrenaline reversal)."
-:s.B>.3?"Beta receptors are blocked: alpha pressor action is unmasked, bigger rise, reflex bradycardia."
+:s.B>.3?"Beta-1 and beta-2 receptors are blocked by propranolol, so there is no direct tachycardia or inotropy and no beta-2 vasodilation. Unopposed alpha-1 vasoconstriction raises peripheral resistance and MAP markedly (larger and longer than normal)."+(baro(s)?" The baroreceptor reflex then slows the heart: reflex bradycardia.":" With no vagal brake (atropine or vagotomy) the reflex bradycardia is lost.")
 :baro(s)?"Biphasic response: MAP rises first (alpha predominates) with reflex vagal slowing of HR, then, as the concentration falls, alpha action fades first and beta-2 vasodilation persists, so MAP dips slightly below baseline before recovering."
 :"No vagal brake (atropine or vagotomy): unopposed beta-1 tachycardia.";
 if(m<=.5&&s.A<.3&&s.B<.3)t+=" Diastolic may dip (beta-2 vasodilation).";return t}
 case"norepi":add("ne",{rise:4,tau:25});
 return s.A>.3?"Noradrenaline: alpha receptors blocked, no response (it has no beta-2 action to reverse it).":"Noradrenaline: strong alpha-1 vasoconstriction, big rise in SBP/DBP/MAP; baroreflex bradycardia lowers HR.";
 case"iso":add("iso",{rise:3,tau:20});
-return s.B>.3?"Isoprenaline: beta receptors blocked by propranolol, response abolished.":"Isoprenaline: beta-1 tachycardia, beta-2 vasodilation, DBP and MAP fall, pulse pressure widens.";
+return s.B>.3?"Isoprenaline: beta receptors blocked by propranolol, response abolished.":"Isoprenaline: beta-2 vasodilation lowers peripheral resistance, so DBP and MAP fall and pulse pressure widens (beta-1 inotropy raises SBP slightly). Tachycardia has two parts: direct beta-1 stimulation of the SA node, plus"+(baro(s)?" reflex tachycardia from the baroreceptor reflex responding to the fall in BP caused by beta-2 vasodilation.":" a blunted reflex component, because with atropine or vagotomy the baroreflex cannot raise HR through vagal withdrawal.");
 case"acetylcholine":{const nic=s.atM>0?(o.vh?1.6:m>=30?1.6:m>=10?.3:.05):0;add("ach",{rise:1,tau:7,nic});
 if(s.atM>0)return"ACh ("+lv+"): muscarinic receptors blocked, depressor response abolished."+(nic>=1?" Nicotinic action on ganglia and adrenal medulla is unmasked: pressor response.":"");
 return"ACh ("+lv+"): brief hypotension (endothelial NO vasodilation) and bradycardia."+(s.vag?" Vagotomy does not block this because ACh acts directly on the receptors.":"")}
@@ -305,6 +307,10 @@ case"vagotomy":if(s.vag)return"Both vagi are already cut.";s.vag=true;return"Bot
 return""}
 function env(e){if(e.age<e.rise)return e.age/e.rise;if(e.age<e.rise+e.hold)return 1;return Math.exp(-(e.age-e.rise-e.hold)/e.tau)}
 function envK(e,k){if(e.age<e.rise+e.hold)return env(e);return Math.exp(-(e.age-e.rise-e.hold)/(e.tau*k))}
+let LG=null;
+function sane(s,c){if(Number.isFinite(c.sys)&&Number.isFinite(c.dia)&&Number.isFinite(c.hr)){if(s===S)LG={sys:c.sys,dia:c.dia,hr:c.hr};s.bad=false;return}
+const g=(s===S&&LG)||BASE;c.sys=g.sys;c.dia=g.dia;c.hr=g.hr;
+if(!s.bad){s.bad=true;s.corr++;if(s===S)logMessage("\u26A0 Invalid value corrected: BP/HR replaced with the last good value (correction #"+s.corr+").")}}
 function step(s,dt){
 s.t+=dt;s.fx.forEach(e=>e.age+=dt);s.fx=s.fx.filter(e=>e.age<e.rise+e.hold+e.tau*(e.type==="epi"?7:5));
 while(s.q.length&&s.t>=s.q[0].at){const j=s.q.shift();startTracker(s,j.label);s.marks.push({at:s.t,l:shortLbl(j.label)});logMessage(inject(s,j.k,j.m,j.o))}
@@ -331,7 +337,7 @@ s.pR*=Math.exp(-dt/40);const ph=s.Af/BLK1*s.pR,pr=s.Bf/BLK1,phHR=20*ph*(baro(s)?
 const tSys=BASE.sys+s.rv*.3+dSys-20*ph-20*pr,tDia=BASE.dia+s.rv*.2+dDia-20*ph-20*pr,tHR=BASE.hr+s.rem+dHR+phHR-10*pr;
 const k=1-Math.exp(-dt/.8),c=s.cur;
 c.sys+=(tSys-c.sys)*k;c.dia+=(tDia-c.dia)*k;c.hr+=(tHR-c.hr)*k;
-c.dia=Math.max(15,c.dia);c.sys=Math.max(c.dia+15,c.sys);c.hr=Math.max(20,c.hr);c.sys=Math.min(c.sys,280);c.dia=Math.min(c.dia,c.sys-15);
+c.dia=Math.max(15,c.dia);c.sys=Math.max(c.dia+15,c.sys);c.hr=Math.max(20,c.hr);c.sys=Math.min(c.sys,280);c.dia=Math.min(c.dia,c.sys-15);sane(s,c);
 if(!s.dead){const mp=mapOf(c);s.tLM=mp<40?s.tLM+dt:0;s.tLH=c.hr<40?s.tLH+dt:0;s.tHM=mp>180?s.tHM+dt:0;s.tHH=c.hr>260?s.tHH+dt:0;
 if(s.tLM>=15)s.dead="profound hypotension (MAP below 40 mmHg for 15 s)";else if(s.tLH>=10)s.dead="severe bradycardia (HR below 40 bpm for 10 s)";else if(s.tHM>=10)s.dead="hypertensive crisis (MAP above 180 mmHg for 10 s)";else if(s.tHH>=10)s.dead="lethal tachycardia (HR above 260 bpm for 10 s)"}
 if(s.tr){const t=s.tr;t.t+=dt;const ds=c.sys-t.pre.sys,dd=c.dia-t.pre.dia,dm=mapOf(c)-mapOf(t.pre),dh=c.hr-t.pre.hr;
@@ -378,28 +384,28 @@ S.marks.push({at:S.t,l:nm.split(" ")[0]+(d.d?" "+fmtD(dose):"")});
 if(d.d)logMessage("Given: "+nm+" "+fmtD(dose)+" mcg/kg ("+fmtD(m/(d.fix&&lvl!=="custom"?d.fix:1))+"x standard).");
 logMessage(inject(S,kk,m))});
 function DOSE_L(l){return{low:"low",normal:"standard",high:"high"}[l]}
-$("resetBtn").addEventListener("click",()=>{S=mk();viewEnd=null;curT=null;clearTimeout(window.dT1);clearTimeout(window.dT2);$("deadOv").hidden=true;$("logBox").innerHTML="";LOGS=[];renderResults();logMessage("New animal prepared.");saveState()});
+$("resetBtn").addEventListener("click",()=>{S=mk();LG=null;easing=false;needDraw=true;viewEnd=null;curT=null;clearTimeout(window.dT1);clearTimeout(window.dT2);$("deadOv").hidden=true;$("logBox").innerHTML="";LOGS=[];renderResults();logMessage("New animal prepared.");saveState()});
 $("washBtn").addEventListener("click",()=>{const s=S;if(s.dead)return;
 if(!(s.A||s.B||s.atM||s.H1||s.H2)){logMessage("No blockers are active, nothing to wash out.");return}
-s.A=0;s.B=0;s.atM=0;s.atH=0;s.H1=0;s.H2=0;s.pR=0;s.marks.push({at:s.t,l:"Washout"});
+s.A=0;s.B=0;s.atM=0;s.atH=0;s.H1=0;s.H2=0;s.pR=0;s.marks.push({at:s.t,l:"Washout"});needDraw=true;
 logMessage("Washout: all receptor blockers cleared (alpha, beta, muscarinic, H1, H2). This is a simplification, as real blockers wear off slowly. Vagotomy cannot be reversed; use New animal for that.")});
 $("pdfBtn").addEventListener("click",()=>{
 const o=document.createElement("canvas");o.width=cv.width;o.height=cv.height;const g=o.getContext("2d");g.fillStyle="#000";g.fillRect(0,0,o.width,o.height);g.drawImage(cv,0,0);
 let h="<h1>Dog CV Pharmacology CAL: Ex. 10 report</h1><p>Date: "+esc(new Date().toLocaleString())+"</p><p>Name: ______________________ &nbsp; Roll no: ____________</p>";
 h+="<h2>Trend at the time of export</h2><img src=\""+o.toDataURL("image/png")+"\" alt=\"Trend chart\"><p>Green = MAP, blue = heart rate, red lines = injections.</p>";
-h+="<h2>Peak responses (first 45 s after each step)</h2>";
+h+="<h2>Peak responses (first 45 s after each step)</h2>";if(S.corr>0)h+="<p style=\"font-weight:bold\">Note: "+S.corr+" calculation correction(s) occurred during this session. Some values were replaced with the last valid value, so results may not be exact. Repeat the experiment.</p>";
 if(S.rows.length){h+="<table><tr><th>Step</th><th>SBP</th><th>DBP</th><th>MAP</th><th>HR</th></tr>"+S.rows.map(r=>"<tr><td>"+esc(r.label)+"</td><td>"+sgn(r.s)+"</td><td>"+sgn(r.d)+"</td><td>"+sgn(r.m)+"</td><td>"+sgn(r.h)+"</td></tr>").join("")+"</table>"}else h+="<p>No interventions recorded.</p>";
 h+="<h2>Physiological response log</h2><ul>"+LOGS.map(l=>"<li>"+esc(l)+"</li>").join("")+"</ul>";
 $("printRep").innerHTML=h;setTimeout(()=>window.print(),300)});
 $("logLatest").addEventListener("click",()=>{const b=$("logBox");b.scrollTop=b.scrollHeight});
 $("copyBtn").addEventListener("click",()=>{
-const txt="Step\tSBP\tDBP\tMAP\tHR\n"+S.rows.map(r=>[r.label,r.s,r.d,r.m,r.h].join("\t")).join("\n");
+const txt="Step\tSBP\tDBP\tMAP\tHR\n"+S.rows.map(r=>[r.label,r.s,r.d,r.m,r.h].join("\t")).join("\n")+(S.corr>0?(S.rows.length?"\n":"")+"Note\t"+S.corr+" calculation correction(s) occurred in this session; some values were replaced. Repeat the experiment.":"");
 (navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).then(()=>logMessage("Results copied."),()=>logMessage("Copy not available here."))});
 
 function chips(){const s=S,a=[];
 if(s.A>.3)a.push("Alpha blocked");if(s.B>.3)a.push("Beta blocked");if(s.atM>0)a.push("Muscarinic blocked");
 if(s.vag)a.push("Vagotomy");if(s.H1>.3)a.push("H1 blocked");if(s.H2>.3)a.push("H2 blocked");
-$("chips").innerHTML=a.map(x=>'<span class="chip">'+x+"</span>").join("")}
+const hc=a.map(x=>'<span class="chip">'+x+"</span>").join("");if(hc!==lastChips){lastChips=hc;$("chips").innerHTML=hc}}
 const cv=$("trend");
 /* ---- peak labels + fit scale ---- */
 function pkFind(h,ms,tEnd){const out=[];
@@ -455,36 +461,44 @@ function axDraw(g,A,T,ph,L,w){g.font="10px sans-serif";g.lineWidth=1;
 for(let i=0;i<=A.N;i++){const y=T+ph*(1-i/A.N);g.strokeStyle="#334155";g.beginPath();g.moveTo(L,y);g.lineTo(w-RM,y);g.stroke();
 g.fillStyle="#38bdf8";g.textAlign="left";g.fillText(A.hLo+i*A.hS,2,y+3);g.fillStyle="#34d399";g.fillText(A.mLo+i*A.mS,w-RM+4,y+3)}
 g.font="bold 10px sans-serif";g.fillStyle="#38bdf8";g.textAlign="left";g.fillText("HR",2,T-5);g.fillStyle="#34d399";g.textAlign="right";g.fillText("MAP",w-2,T-5);g.textAlign="left";g.font="10px sans-serif"}
+function measure(){const r=cv.getBoundingClientRect();cvW=r.width;cvH=r.height;return cvW}
 function draw(){
-const r=cv.getBoundingClientRect(),dpr=window.devicePixelRatio||1,W=Math.round(r.width*dpr),H=Math.round(r.height*dpr);
+if(!cvW||!cvH)measure();
+const dpr=window.devicePixelRatio||1,w=cvW,h=cvH;
+if(!(w>0&&h>0))return;
+const W=Math.round(w*dpr),H=Math.round(h*dpr);
 if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H}
-const g=cv.getContext("2d");g.setTransform(dpr,0,0,dpr,0,0);const w=r.width,h=r.height;
+const g=cv.getContext("2d");g.setTransform(dpr,0,0,dpr,0,0);
 g.clearRect(0,0,w,h);const L=30,T=16,B=20,pw=w-L-RM,ph=h-T-B;
-const t1=viewEnd==null?S.t:viewEnd,t0=t1-win,X=t=>L+pw*(t-t0)/win;const A=axes(fitOn,S.hist,t0,t1);const Ym=v=>T+ph*(1-(v-A.mLo)/(A.N*A.mS)),Yh=v=>T+ph*(1-(v-A.hLo)/(A.N*A.hS));
+const run=viewEnd==null&&!paused&&!S.dead,tE=run?S.t+Math.min((performance.now()-tickAt)/1000,.1)*(+$("speedSelect").value):S.t;
+const tB=viewEnd==null?S.t:viewEnd,t0b=tB-win,t1=viewEnd==null?tE:viewEnd,t0=t1-win,X=t=>L+pw*(t-t0)/win;const A=axes(fitOn,S.hist,t0b,tB);const Ym=v=>T+ph*(1-(v-A.mLo)/(A.N*A.mS)),Yh=v=>T+ph*(1-(v-A.hLo)/(A.N*A.hS));
 axDraw(g,A,T,ph,L,w);basalDraw(g,Ym,Yh,L,w-RM,T,ph);
 {const stp=[1,2,5,10,20,30,60,120,300].find(x=>win/x<=7)||300;g.fillStyle="#94a3b8";g.strokeStyle="#1e293b";g.lineWidth=1;
 for(let t=Math.ceil(t0/stp)*stp;t<=t1;t+=stp){const x=X(t);g.beginPath();g.moveTo(x,T);g.lineTo(x,T+ph);g.stroke();g.fillText(Math.round(t)+"s",x-10,h-5)}}
 const line=(i,col,Y)=>{g.strokeStyle=col;g.lineWidth=2;g.beginPath();let f=1;
-for(const p of S.hist){if(p[0]<t0)continue;if(p[0]>t1)break;const x=X(p[0]),y=Y(p[i]);if(f){g.moveTo(x,y);f=0}else g.lineTo(x,y)}g.stroke()};
+for(const p of S.hist){if(p[0]<t0)continue;if(p[0]>t1)break;const x=X(p[0]),y=Y(p[i]);if(!isFinite(x)||!isFinite(y)){f=1;continue}if(f){g.moveTo(x,y);f=0}else g.lineTo(x,y)}
+if(run&&!f){const x=X(tE),y=Y(i===1?mapOf(S.cur):S.cur.hr);if(isFinite(x)&&isFinite(y))g.lineTo(x,y)}g.stroke()};
 g.save();g.beginPath();g.rect(L,T,pw,ph);g.clip();line(1,"#10b981",Ym);line(2,"#38bdf8",Yh);g.restore();
 drawMarks(g,S.marks,X,T,ph,w-RM,t0,t1);
-pkDraw(g,pkFind(S.hist,S.marks,t1),X,Ym,Yh,t0,t1,w-RM,T,ph);curDraw(g,S.hist,curT,X,Ym,Yh,t0,t1,w-RM,T,ph);
-$("trLabel").textContent=(paused?"PAUSED. ":viewEnd==null?"Live trend: ":"Scrolled back: ")+"window "+Math.round(win)+" s"+(fitOn?", fitted scales":"")+" (blue = heart rate, left axis; green = MAP, right axis)"}
+pkDraw(g,pkFind(S.hist,S.marks,tB),X,Ym,Yh,t0,t1,w-RM,T,ph);curDraw(g,S.hist,curT,X,Ym,Yh,t0b,tB,w-RM,T,ph);
+const lbl=(paused?"PAUSED. ":viewEnd==null?"Live trend: ":"Scrolled back: ")+"window "+Math.round(win)+" s"+(fitOn?", fitted scales":"")+" (blue = heart rate, left axis; green = MAP, right axis)";if(lbl!==lastLbl){lastLbl=lbl;$("trLabel").textContent=lbl}}
 let paused=false,viewEnd=null,win=90;
+let needDraw=true,tickAt=0,easing=false,easeFrom=0,easeT0=0,cvW=0,cvH=0,lastBp=null,lastHr=null,lastChips=null,lastLbl=null;
 function clampView(ve){const f=S.hist.length?S.hist[0][0]:0;return Math.max(f+win*.1,Math.min(S.t,ve))}
 function panBy(dsec){const ve=clampView((viewEnd==null?S.t:viewEnd)-dsec);viewEnd=ve>=S.t-.01?null:ve}
 function zoomBy(f){const c=(viewEnd==null?S.t:viewEnd);win=Math.max(10,Math.min(600,win*f));if(viewEnd!=null)viewEnd=clampView(c)}
-$("pauseBtn").onclick=()=>{paused=!paused;$("pauseBtn").textContent=paused?"▶ Resume":"⏸ Pause";$("injectBtn").disabled=paused;last=Date.now()};
-$("fitBtn").onclick=()=>{fitOn=!fitOn;$("fitBtn").textContent=fitOn?"🎯 Fit scale: ON (tap for full scale)":"🎯 Fit scale: OFF (tap to magnify peaks)"};
-$("zoIn").onclick=()=>zoomBy(.5);$("zoOut").onclick=()=>zoomBy(2);$("liveBtn").onclick=()=>{viewEnd=null};
+$("pauseBtn").onclick=()=>{paused=!paused;$("pauseBtn").textContent=paused?"▶ Resume":"⏸ Pause";$("injectBtn").disabled=paused;last=Date.now();tickAt=performance.now();needDraw=true};
+$("fitBtn").onclick=()=>{fitOn=!fitOn;$("fitBtn").textContent=fitOn?"🎯 Fit scale: ON (tap for full scale)":"🎯 Fit scale: OFF (tap to magnify peaks)";needDraw=true};
+$("zoIn").onclick=()=>{zoomBy(.5);needDraw=true};$("zoOut").onclick=()=>{zoomBy(2);needDraw=true};$("liveBtn").onclick=()=>{if(viewEnd!=null){easeFrom=viewEnd;easeT0=performance.now();easing=true}needDraw=true};
+$("refreshBtn").onclick=()=>{paused=false;$("pauseBtn").textContent="⏸ Pause";$("injectBtn").disabled=!!S.dead;viewEnd=null;curT=null;win=90;fitOn=false;$("fitBtn").textContent="🎯 Fit scale: OFF (tap to magnify peaks)";last=Date.now();tickAt=performance.now();easing=false;lastChips=lastBp=lastHr=lastLbl=null;cv.width=0;cv.height=0;measure();needDraw=true;renderResults();draw();chips();logMessage("View refreshed (your results are kept).")};
 {const P=new Map;let d0=0,w0=0,mv=0;
-cv.addEventListener("pointerdown",e=>{cv.setPointerCapture(e.pointerId);if(P.size===0)mv=0;P.set(e.pointerId,e.clientX);if(P.size==2){const x=[...P.values()];d0=Math.abs(x[0]-x[1]);w0=win}});
-cv.addEventListener("pointermove",e=>{if(!P.has(e.pointerId))return;const px=P.get(e.pointerId);mv+=Math.abs(e.clientX-px);P.set(e.pointerId,e.clientX);const pw=cv.getBoundingClientRect().width-34;
+cv.addEventListener("pointerdown",e=>{easing=false;cv.setPointerCapture(e.pointerId);if(P.size===0)mv=0;P.set(e.pointerId,e.clientX);if(P.size==2){const x=[...P.values()];d0=Math.abs(x[0]-x[1]);w0=win}});
+cv.addEventListener("pointermove",e=>{if(!P.has(e.pointerId))return;const px=P.get(e.pointerId);mv+=Math.abs(e.clientX-px);P.set(e.pointerId,e.clientX);needDraw=true;const pw=(cvW||measure())-34;
 if(P.size==1)panBy((e.clientX-px)/pw*win);
 else if(P.size==2&&d0>10){const x=[...P.values()],d=Math.abs(x[0]-x[1]);const c=(viewEnd==null?S.t:viewEnd);win=Math.max(10,Math.min(600,w0*d0/d));if(viewEnd!=null)viewEnd=clampView(c)}});
 const up=e=>{if(e.type==="pointerup"&&P.size===1&&P.has(e.pointerId)&&mv<8)tapAt(e.clientX);P.delete(e.pointerId)};cv.addEventListener("pointerup",up);cv.addEventListener("pointercancel",up);
-cv.addEventListener("wheel",e=>{e.preventDefault();zoomBy(e.deltaY>0?1.2:1/1.2)},{passive:false})}
-function tapAt(cx){const r=cv.getBoundingClientRect(),L=30,pw=r.width-L-RM,t1=viewEnd==null?S.t:viewEnd,t0=t1-win,x=cx-r.left;if(x<L||x>L+pw||!S.hist.length)return;
+cv.addEventListener("wheel",e=>{e.preventDefault();easing=false;needDraw=true;zoomBy(e.deltaY>0?1.2:1/1.2)},{passive:false})}
+function tapAt(cx){needDraw=true;const r=cv.getBoundingClientRect(),L=30,pw=r.width-L-RM,t1=viewEnd==null?S.t:viewEnd,t0=t1-win,x=cx-r.left;if(x<L||x>L+pw||!S.hist.length)return;
 const t=t0+(x-L)/pw*win;if(curT!=null&&Math.abs((curT-t0)/win*pw+L-x)<18){curT=null;return}
 curT=Math.max(S.hist[0][0],Math.min(S.t,t))}
 /* ---- sound ---- */
@@ -535,16 +549,18 @@ $("vHint").onclick=()=>{if(vi==null)vNext();vReveal()};$("vShow").onclick=()=>{i
 let last=Date.now();
 function frame(){const now=Date.now();
 const dt=Math.min(.1,(now-last)/1000)*(+$("speedSelect").value);last=now;
-let rem=(paused||S.dead)?0:dt;while(rem>0){const d=Math.min(.05,rem);step(S,d);rem-=d}
-$("bpDisplay").textContent=S.dead?"0 / 0":Math.round(S.cur.sys)+" / "+Math.round(S.cur.dia);
-$("hrDisplay").textContent=S.dead?"0":Math.round(S.cur.hr);beatTick();
+const ran=!(paused||S.dead);let rem=(paused||S.dead)?0:dt;while(rem>0){const d=Math.min(.05,rem);step(S,d);rem-=d}
+tickAt=performance.now();
+const bpT=S.dead?"0 / 0":Math.round(S.cur.sys)+" / "+Math.round(S.cur.dia),hrT=S.dead?"0":""+Math.round(S.cur.hr);
+if(bpT!==lastBp){lastBp=bpT;$("bpDisplay").textContent=bpT}
+if(hrT!==lastHr){lastHr=hrT;$("hrDisplay").textContent=hrT}beatTick();
 if(S.dead&&!S.dShown){S.dShown=1;S.marks.push({at:S.t,l:"DEAD"});logMessage("THE DOG DIED: "+S.dead+".");$("deadBox").innerHTML='<div style="font-size:1.4rem;font-weight:800">☠️ THE DOG DIED</div><div style="font-size:.8rem;font-weight:400;margin-top:6px">Cause: '+S.dead+'. Tap New animal to start again.</div>';
 const ov=$("deadOv"),ot=$("deadOvT");clearTimeout(window.dT1);clearTimeout(window.dT2);
 ot.innerHTML='<div style="font-size:2.4rem">☠️ THE DOG DIED</div>';ov.hidden=false;ov.classList.remove("go");void ov.offsetWidth;ov.classList.add("go");deathSound();try{navigator.vibrate&&navigator.vibrate([300,120,600])}catch(e){}
 window.dT1=setTimeout(function(){ot.innerHTML='<div style="font-size:1.5rem">(You killed it, you monster.)</div>'},1500);
 window.dT2=setTimeout(function(){ov.hidden=true},2500)}
 $("deadBox").hidden=!S.dead;
-$("injectBtn").disabled=paused||!!S.dead;chips();draw()}
+$("injectBtn").disabled=paused||!!S.dead;chips();if(ran)needDraw=true}
 const QS=[
 {q:"Q1. Both common carotid arteries are occluded for 15 seconds. What changes occur in mean arterial pressure (MAP) and heart rate (HR)? Explain the mechanism.",g:{T:60,s:[[10,"occlusion",1,"Occl"]]},a:`<p><b>MAP rises</b> (record: 90 to 130 mmHg, +40) for the 15 s of occlusion, with a small rise in HR (record: 150 to 160), then returns to baseline on release.</p><ul><li>Occlusion lowers pressure at the carotid sinus, so baroreceptor firing (glossopharyngeal nerve) falls.</li><li>The brainstem (NTS, medulla) reads this as low BP: vagal tone falls and sympathetic outflow rises.</li><li>Result: arteriolar and venous vasoconstriction (alpha-1), more cardiac output (beta-1), higher HR.</li><li>Abolished by vagotomy (HR part) and by alpha/beta blockade (vascular and cardiac parts).</li><li>Your answer key names carotid-body chemoreceptor stimulation. Stagnant hypoxia during occlusion can add to the rise, but baroreceptor unloading is the main textbook mechanism.</li></ul>`},
 {q:"Q2. The central cut end and the peripheral cut end of the vagus nerve are stimulated electrically, one after the other. What changes occur in HR and MAP with each stimulation? Explain the mechanism for each.",g:{T:110,s:[[10,"vagC",1,"Vagus C"],[55,"vagP",1,"Vagus P"]]},a:`<p><b>Central cut end:</b> HR and MAP rise (record: HR 150 to 160, MAP 90 to 140, +50).</p><ul><li>Record explanation: afferent input from the central cut end increases sympathetic vasomotor outflow, so HR and MAP rise.</li><li>Flag: many textbooks describe a reflex fall in BP and HR here. Published dog work also reports a pressor response to afferent vagal stimulation, so the record is kept.</li></ul><p><b>Peripheral cut end:</b> HR and MAP fall (record: HR 150 to 120, MAP 90 to 50, -40).</p><ul><li>Efferent vagal fibres release ACh on M2 receptors in the SA and AV nodes: bradycardia, less cardiac output, lower MAP.</li><li>Abolished by atropine (muscarinic block).</li></ul>`},
@@ -566,7 +582,7 @@ const QS=[
 {q:"Q8. The tracing shows acetylcholine (ACh) 5 and 10 mcg/kg, atropine 750 and 1500 mcg/kg, and then ACh 10, 100 and 300 mcg/kg. (a) How does ACh lower HR and blood pressure? (b) Why is the response to ACh so brief? (c) How does atropine raise HR, and why does it cause only a minimal change in MAP? (d) Why does a high dose of ACh raise HR and blood pressure after atropinisation?",g:{T:430,s:[[10,"acetylcholine",1,"ACh 5"],[50,"acetylcholine",2,"ACh 10"],[100,"atropine",1,"Atro 750"],[160,"atropine",2,"Atro 1500"],[230,"acetylcholine",2,"ACh 10"],[290,"acetylcholine",20,"ACh 100"],[350,"acetylcholine",60,"ACh 300"]]},a:`<p><b>(a) Fall in HR and BP:</b> M2 receptors at the SA and AV nodes open K+ channels: bradycardia and slower conduction. M3 receptors on vascular endothelium release NO: vasodilation, lower TPR. Record: ACh 5 mcg/kg, HR 150 to 120, MAP 90 to 60.</p><p><b>(b) Short-lived:</b> ACh is hydrolysed within seconds by acetylcholinesterase and plasma cholinesterase.</p><p><b>(c) Atropine:</b> blocks M2 and removes resting vagal tone, so HR rises (record: 150 to 190). Most vessels have little parasympathetic innervation and their tone is sympathetic, so MAP is unchanged in the record.</p><p><b>(d) High-dose ACh after atropine:</b> muscarinic effects are blocked, so ACh now acts on nicotinic (NN) receptors in autonomic ganglia and the adrenal medulla. Sympathetic ganglia stimulation and adrenaline release raise BP and HR (record row 16: atropine 1500 then ACh 150, MAP +80, HR +20).</p>`}
 ];
 function simRun(sq,T){const s=mk(),m=[],h=[];let i=0,n=0;while(s.t<T){while(i<sq.length&&s.t>=sq[i][0]){const x=sq[i++];inject(s,x[1],x[2],x[4]);m.push([s.t,x[3]])}step(s,.05);if(++n%2===0)h.push([s.t,mapOf(s.cur),s.cur.hr])}return{h,m,T}}
-function drawG(cv,r,fit,cT){const bb=cv.getBoundingClientRect(),dpr=window.devicePixelRatio||1;cv.width=Math.round(bb.width*dpr);cv.height=Math.round(bb.height*dpr);
+function drawG(cv,r,fit,cT){const bb=cv.getBoundingClientRect(),dpr=window.devicePixelRatio||1;if(!(bb.width>0&&bb.height>0))return;cv.width=Math.round(bb.width*dpr);cv.height=Math.round(bb.height*dpr);
 const g=cv.getContext("2d");g.setTransform(dpr,0,0,dpr,0,0);const w=bb.width,h=bb.height,L=30,T=16,B=18,pw=w-L-RM,ph=h-T-B;
 const A=axes(fit,r.h,0,r.T);const X=t=>L+pw*t/r.T,Ym=v=>T+ph*(1-(v-A.mLo)/(A.N*A.mS)),Yh=v=>T+ph*(1-(v-A.hLo)/(A.N*A.hS));axDraw(g,A,T,ph,L,w);basalDraw(g,Ym,Yh,L,w-RM,T,ph);g.fillStyle="#94a3b8";
 for(let t=0;t<=r.T;t+=20)g.fillText(t+"s",X(t)-8,h-4);
@@ -579,13 +595,19 @@ $("qs").querySelectorAll("details").forEach(d=>d.addEventListener("toggle",()=>{
 function saveState(){try{const h=S.hist.slice(-4000).map(p=>[+p[0].toFixed(1),+p[1].toFixed(1),+p[2].toFixed(1)]);localStorage.setItem(KEY,JSON.stringify({v:1,S:Object.assign({},S,{hist:h}),logs:LOGS.slice(-150)}))}catch(e){}}
 function loadState(){try{const raw=localStorage.getItem(KEY);if(!raw)return false;const o=JSON.parse(raw);
 if(!o||o.v!==1||!o.S||!o.S.cur||!Array.isArray(o.S.hist)||o.S.dead)return false;
-S=Object.assign(mk(),o.S);LOGS=Array.isArray(o.logs)?o.logs.slice(-300):[];
-const b=$("logBox");LOGS.forEach(l=>{const d=document.createElement("div");d.className="log-entry";d.textContent=l;b.appendChild(d)});b.scrollTop=b.scrollHeight;return true}catch(e){S=mk();LOGS=[];return false}}
+S=Object.assign(mk(),o.S);const nh=S.hist.length;S.hist=S.hist.filter(p=>Array.isArray(p)&&Number.isFinite(p[0])&&Number.isFinite(p[1])&&Number.isFinite(p[2]));if(!Number.isFinite(S.t)||!S.cur||!Number.isFinite(S.cur.sys)||!Number.isFinite(S.cur.dia)||!Number.isFinite(S.cur.hr)){S=mk();return false}LOGS=Array.isArray(o.logs)?o.logs.slice(-300):[];
+const b=$("logBox");LOGS.forEach(l=>{const d=document.createElement("div");d.className="log-entry";d.textContent=l;b.appendChild(d)});b.scrollTop=b.scrollHeight;if(nh>S.hist.length)logMessage("Warning: "+(nh-S.hist.length)+" damaged saved points removed.");return true}catch(e){S=mk();LOGS=[];return false}}
 setInterval(saveState,3000);document.addEventListener("visibilitychange",()=>{if(document.hidden)saveState()});window.addEventListener("pagehide",saveState);
 hint();
 if(loadState()){renderResults();last=Date.now();logMessage("Previous session restored (progress is auto-saved on this device). Tap New animal to start fresh.")}
 else logMessage("Animal prepared: BP 120/75 (MAP 90), HR 150. Choose an intervention.");
 setInterval(function(){if(!document.getElementById("dog").hidden)frame()},50);
+if(window.ResizeObserver)new ResizeObserver(()=>{measure();needDraw=true}).observe(cv);
+window.addEventListener("resize",()=>{measure();needDraw=true});window.addEventListener("orientationchange",()=>{measure();needDraw=true});
+function rafLoop(){requestAnimationFrame(rafLoop);if(document.getElementById("dog").hidden)return;
+if(easing){if(viewEnd==null)easing=false;else{const p=Math.min(1,(performance.now()-easeT0)/250),e=1-Math.pow(1-p,3);viewEnd=p>=1?null:easeFrom+(S.t-easeFrom)*e;if(p>=1)easing=false;needDraw=true}}
+if(needDraw||!(paused||S.dead)){needDraw=false;draw()}}
+requestAnimationFrame(rafLoop);
 
 })();</script>
 </body></html>
