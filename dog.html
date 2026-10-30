@@ -10,7 +10,7 @@ window.addEventListener('error',function(e){addErr('error',e.message+' @'+(e.lin
 window.addEventListener('unhandledrejection',function(e){addErr('promise',e.reason)});
 var ce=console.error;console.error=function(){addErr('console',[].join.call(arguments,' '));ce.apply(console,arguments)};
 var $=function(i){return document.getElementById(i)};
-function pix(cv){var W=cv.width,H=cv.height;if(!W||!H)return null;try{var d=cv.getContext('2d').getImageData(0,0,W,H).data,n=0;for(var i=0;i<d.length;i+=4){var r=d[i],g=d[i+1],b=d[i+2];if((g>150&&r<60&&b>90&&b<160)||(b>200&&g>150&&r<90))n++}return{ink:n,perCol:+(n/W).toFixed(2)}}catch(e){return{err:String(e)}}}
+function pix(cv){var W=cv.width,H=cv.height;if(!W||!H)return null;try{var k=W/(cv.getBoundingClientRect().width||W),x0=Math.round(40*k),pw=Math.round(W-x0-46*k),y0=Math.round(20*k),ph=Math.round(H-y0-24*k);if(pw<=0||ph<=0)return null;var d=cv.getContext('2d').getImageData(x0,y0,pw,ph).data,n=0;W=pw;for(var i=0;i<d.length;i+=4){var r=d[i],g=d[i+1],b=d[i+2];if((g>150&&r<60&&b>90&&b<160)||(b>200&&g>150&&r<90))n++}return{ink:n,perCol:+(n/W).toFixed(2)}}catch(e){return{err:String(e)}}}
 function snap(){
 var d=window.__dbg;if(!d)return{ready:false};
 var S=d.S,v=d.v,h=S.hist,n=h.length,nan=0,uns=0,i,p;
@@ -22,7 +22,7 @@ hist:{n:n,nan:nan,unsorted:uns,first:n?h[0][0]:null,last:n?h[n-1][0]:null,tail:h
 view:{viewEnd:v.viewEnd,win:v.win,fit:v.fitOn,cvW:v.cvW,cvH:v.cvH},
 canvas:{w:cv.width,h:cv.height,css:cv.getBoundingClientRect().width+'x'+cv.getBoundingClientRect().height,dpr:window.devicePixelRatio,mpx:+(cv.width*cv.height/1e6).toFixed(2)},
 sizes:{fx:S.fx.length,marks:S.marks.length,queue:S.q.length,rows:S.rows.length,logs:d.LOGS.length,logDom:$('logBox')?$('logBox').children.length:0},
-draws:dN,frames:fN,errs:errs.length};
+draws:dN,frames:fN,errs:errs.filter(function(e){return e.k==='error'||e.k==='promise'||e.k==='console'}).length};
 if(prev){var dt=(now-prev.at)/1000;if(dt>0){s.fps=+((dN-prev.d)/dt).toFixed(1);s.tick=+((fN-prev.f)/dt).toFixed(1);s.simRate=+((S.t-prev.t)/dt).toFixed(2)}}
 prev={at:now,d:dN,f:fN,t:S.t};
 if(performance.memory)s.heapMB=+(performance.memory.usedJSHeapSize/1048576).toFixed(1);
@@ -70,9 +70,28 @@ stress={n:0,id:setInterval(stressStep,2500),since:Date.now()};ui()}
 var root,pan,badge,open=false,last=null,lastPr=null;
 function el(t,c,x){var e=document.createElement(t);if(c)e.style.cssText=c;if(x!=null)e.textContent=x;return e}
 function btn(t,f){var b=el('button','margin:3px 4px 3px 0;padding:8px 10px;border:1px solid #475569;border-radius:8px;background:#1e293b;color:#e2e8f0;font:12px sans-serif',t);b.onclick=f;return b}
-function report(){return JSON.stringify({userAgent:navigator.userAgent,snapshot:last,verdict:cause(last||{},lastPr),errors:errs,incident:inc,stress:stress?{injections:stress.n}:null},null,1)}
-function copy(){var r=report();if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(r).then(function(){addErr('info','report copied')},fb)}else fb();
-function fb(){var a=el('a');a.href=URL.createObjectURL(new Blob([r],{type:'application/json'}));a.download='dog-debug-report.json';document.body.appendChild(a);a.click();a.remove()}}
+function report(){return JSON.stringify({userAgent:navigator.userAgent,snapshot:last,verdict:cause(last||{},lastPr),errors:errs,incident:inc,marks:(window.__dbg?window.__dbg.S.marks:null),results:(window.__dbg?window.__dbg.S.rows:null),queued:(window.__dbg?window.__dbg.S.q:null),stress:stress?{injections:stress.n}:null},null,1)}
+function copyText(r,name,msg){function fb(){var a=el('a');a.href=URL.createObjectURL(new Blob([r],{type:'text/plain'}));a.download=name;document.body.appendChild(a);a.click();a.remove();addErr('info',msg+' downloaded as '+name)}
+if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(r).then(function(){addErr('info',msg+' copied');ui()},fb)}else fb()}
+function logText(){var d=window.__dbg;if(!d)return'';var L=d.LOGS.slice();if(!L.length&&$('logBox'))L=[].map.call($('logBox').children,function(c){return c.textContent});return L.join('\n')}
+function resultsText(){var d=window.__dbg;if(!d)return'';var r=d.S.rows||[];return r.length?r.map(function(x){return x.label+' | sys '+x.s+' | dia '+x.d+' | MAP '+x.m+' | HR '+x.h}).join('\n'):'(no interventions recorded)'}
+function marksText(){var d=window.__dbg;return d?d.S.marks.map(function(m){return 't='+m.at.toFixed(1)+'s  '+m.l}).join('\n'):''}
+function graphText(){var d=window.__dbg;if(!d)return'';var h=d.S.hist,n=h.length;if(!n)return'(no data)';var st=Math.max(1,Math.ceil(n/150)),r=['t(s)  MAP  HR'];for(var i=0;i<n;i+=st)r.push(h[i][0].toFixed(0)+'  '+Math.round(h[i][1])+'  '+Math.round(h[i][2]));r.push(h[n-1][0].toFixed(0)+'  '+Math.round(h[n-1][1])+'  '+Math.round(h[n-1][2]));return r.join('\n')}
+function graphCanvas(){var d=window.__dbg,S=d.S,cv=d.cv,W=cv.width,H=cv.height,oh=Math.round(H*.6),c=document.createElement('canvas'),fs=Math.max(12,Math.round(W/55));c.width=W;c.height=H+oh+70;var g=c.getContext('2d');g.fillStyle='#000';g.fillRect(0,0,c.width,c.height);
+g.fillStyle='#e2e8f0';g.font='bold '+fs+'px sans-serif';g.fillText('Dog CAL | sim t='+Math.round(S.t)+'s | '+(d.v.viewEnd==null?'live view':'scrolled to '+d.v.viewEnd.toFixed(0)+'s')+' | window '+Math.round(d.v.win)+'s',10,fs+4);
+g.drawImage(cv,0,fs+14);
+var y0=H+fs+50,ph=oh-10,h=S.hist,n=h.length;g.fillStyle='#e2e8f0';g.fillText('Whole session (green MAP 0-220, blue HR 0-260, red = drugs)',10,y0-8);
+if(n>1){var t0=h[0][0],t1=h[n-1][0],X=function(t){return 40+(W-80)*(t-t0)/Math.max(1,t1-t0)},st=Math.max(1,Math.ceil(n/W));g.strokeStyle='#334155';g.strokeRect(40,y0,W-80,ph);
+[[1,'#10b981',220],[2,'#38bdf8',260]].forEach(function(k){g.strokeStyle=k[1];g.lineWidth=2;g.beginPath();for(var i=0;i<n;i+=st){var x=X(h[i][0]),y=y0+ph*(1-Math.min(1,Math.max(0,h[i][k[0]]/k[2])));i?g.lineTo(x,y):g.moveTo(x,y)}g.stroke()});
+g.lineWidth=1;g.strokeStyle='#f43f5e';g.fillStyle='#fda4af';g.font=Math.round(fs*.8)+'px sans-serif';S.marks.forEach(function(m,j){if(m.at<t0||m.at>t1)return;var x=X(m.at);g.beginPath();g.moveTo(x,y0);g.lineTo(x,y0+ph);g.stroke();g.fillText(m.l,x+2,y0+12+(j%4)*(fs*.9))});
+g.fillStyle='#94a3b8';g.fillText(Math.round(t0)+'s',40,y0+ph+fs);g.fillText(Math.round(t1)+'s',W-80,y0+ph+fs)}
+return c}
+function savePng(copyToo){try{graphCanvas().toBlob(function(b){if(!b){addErr('graph','toBlob failed');return}
+function dl(){var a=el('a');a.href=URL.createObjectURL(b);a.download='dog-graph-t'+Math.round(window.__dbg.S.t)+'s.png';document.body.appendChild(a);a.click();a.remove();addErr('info','graph image downloaded')}
+if(copyToo&&window.ClipboardItem&&navigator.clipboard&&navigator.clipboard.write){navigator.clipboard.write([new ClipboardItem({'image/png':b})]).then(function(){addErr('info','graph image copied');ui()},dl)}else dl()},'image/png')}catch(e){addErr('graph',e.message)}}
+function copy(){copyText(report(),'dog-debug-report.json','Report')}
+function copyLog(){copyText('=== PHYSIOLOGICAL RESPONSES LOG ===\n'+logText()+'\n\n=== RESULTS TABLE (sys/dia/MAP/HR changes) ===\n'+resultsText()+'\n\n=== DRUG MARKS ===\n'+marksText(),'dog-log.txt','Physiological log')}
+function copyAll(){copyText('=== DEBUG REPORT ===\n'+report()+'\n\n=== PHYSIOLOGICAL RESPONSES LOG ===\n'+logText()+'\n\n=== RESULTS TABLE ===\n'+resultsText()+'\n\n=== DRUG MARKS ===\n'+marksText()+'\n\n=== GRAPH DATA (MAP, HR over time) ===\n'+graphText(),'dog-debug-all.txt','Everything');savePng(false)}
 function ui(){
 if(!root)return;var s=last||{},j=judge(s),bad=j.filter(function(x){return x[0]==='bad'}).length,cs=cause(s,lastPr);
 badge.style.background=inc?'#dc2626':bad?'#f59e0b':'#16a34a';badge.textContent='🐞'+(bad?' '+bad:'');
@@ -88,7 +107,7 @@ var row=el('div');
 row.appendChild(btn(stress?'■ Stop stress test':'▶ Stress test (auto-give drugs)',toggleStress));
 row.appendChild(btn('Redraw probe',function(){lastPr=window.__dbg.probe();addErr('probe',JSON.stringify(lastPr).slice(0,200));tick()}));
 row.appendChild(btn('Refresh view (app)',function(){$('refreshBtn').click();addErr('info','Refresh view clicked: check if trace returns');setTimeout(tick,300)}));
-row.appendChild(btn('Copy report',copy));
+row.appendChild(btn('Copy report',copy));row.appendChild(btn('Copy physiological log',copyLog));row.appendChild(btn('Copy ALL (+graph image)',copyAll));row.appendChild(btn('Graph image only',function(){savePng(true)}));
 row.appendChild(btn('Clear incident',function(){inc=null;errs.length=0;ui()}));
 row.appendChild(btn('Clear saved state',function(){try{localStorage.removeItem(window.__dbg.KEY)}catch(e){}addErr('info','saved state cleared')}));
 row.appendChild(btn('Close',function(){open=false;ui()}));
