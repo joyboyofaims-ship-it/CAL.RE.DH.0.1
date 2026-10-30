@@ -2,6 +2,119 @@
 <html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Dog CV Pharmacology CAL</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0b6e4f">
+<script>(function(){
+var T0=Date.now(),errs=[],inc=null,prev=null,stress=null,fpsH=[],heapH=[];
+function ts(){return((Date.now()-T0)/1000).toFixed(1)}
+function addErr(k,m){errs.push({t:ts(),k:k,m:String(m).slice(0,400)});if(errs.length>40)errs.shift()}
+window.addEventListener('error',function(e){addErr('error',e.message+' @'+(e.lineno||'?')+':'+(e.colno||'?'))});
+window.addEventListener('unhandledrejection',function(e){addErr('promise',e.reason)});
+var ce=console.error;console.error=function(){addErr('console',[].join.call(arguments,' '));ce.apply(console,arguments)};
+var $=function(i){return document.getElementById(i)};
+function pix(cv){var W=cv.width,H=cv.height;if(!W||!H)return null;try{var d=cv.getContext('2d').getImageData(0,0,W,H).data,n=0;for(var i=0;i<d.length;i+=4){var r=d[i],g=d[i+1],b=d[i+2];if((g>150&&r<60&&b>90&&b<160)||(b>200&&g>150&&r<90))n++}return{ink:n,perCol:+(n/W).toFixed(2)}}catch(e){return{err:String(e)}}}
+function snap(){
+var d=window.__dbg;if(!d)return{ready:false};
+var S=d.S,v=d.v,h=S.hist,n=h.length,nan=0,uns=0,i,p;
+for(i=0;i<n;i++){p=h[i];if(!isFinite(p[0])||!isFinite(p[1])||!isFinite(p[2]))nan++;if(i&&p[0]<h[i-1][0])uns++}
+var cv=d.cv,now=performance.now(),dN=window.__dN||0,fN=window.__fN||0,s={
+ready:true,wall:+ts(),simT:S.t,dead:S.dead,paused:v.paused,
+cur:{sys:S.cur.sys,dia:S.cur.dia,hr:S.cur.hr},
+hist:{n:n,nan:nan,unsorted:uns,first:n?h[0][0]:null,last:n?h[n-1][0]:null,tail:h.slice(-5)},
+view:{viewEnd:v.viewEnd,win:v.win,fit:v.fitOn,cvW:v.cvW,cvH:v.cvH},
+canvas:{w:cv.width,h:cv.height,css:cv.getBoundingClientRect().width+'x'+cv.getBoundingClientRect().height,dpr:window.devicePixelRatio,mpx:+(cv.width*cv.height/1e6).toFixed(2)},
+sizes:{fx:S.fx.length,marks:S.marks.length,queue:S.q.length,rows:S.rows.length,logs:d.LOGS.length,logDom:$('logBox')?$('logBox').children.length:0},
+draws:dN,frames:fN,errs:errs.length};
+if(prev){var dt=(now-prev.at)/1000;if(dt>0){s.fps=+((dN-prev.d)/dt).toFixed(1);s.tick=+((fN-prev.f)/dt).toFixed(1);s.simRate=+((S.t-prev.t)/dt).toFixed(2)}}
+prev={at:now,d:dN,f:fN,t:S.t};
+if(performance.memory)s.heapMB=+(performance.memory.usedJSHeapSize/1048576).toFixed(1);
+try{s.saveKB=+(((localStorage.getItem(d.KEY)||'').length)/1024).toFixed(1)}catch(e){s.saveKB='err'}
+s.pix=pix(cv);
+return s}
+function judge(s){
+var o=[];if(!s.ready)return[['warn','Waiting for app (is this the debug build?)']];
+var live=!s.paused&&!s.dead&&s.view.viewEnd==null;
+function c(ok,msg){o.push([ok?'ok':'bad',msg])}
+c(isFinite(s.simT)&&isFinite(s.cur.sys)&&isFinite(s.cur.dia)&&isFinite(s.cur.hr),'Simulation values finite (t='+Math.round(s.simT)+'s, BP '+Math.round(s.cur.sys)+'/'+Math.round(s.cur.dia)+', HR '+Math.round(s.cur.hr)+')');
+c(s.hist.nan===0,'History has no NaN/Infinity ('+s.hist.nan+' bad of '+s.hist.n+')');
+c(s.hist.unsorted===0,'History is time-ordered ('+s.hist.unsorted+' out of order)');
+c(!live||s.hist.last==null||s.simT-s.hist.last<2,'History still recording (gap '+(s.hist.last==null?'n/a':(s.simT-s.hist.last).toFixed(1))+'s)');
+c(s.canvas.w>0&&s.canvas.h>0,'Canvas has size ('+s.canvas.w+'x'+s.canvas.h+', '+s.canvas.mpx+' Mpx)');
+c(s.canvas.mpx<12,'Canvas pixel count safe');
+c(s.view.cvW>0&&s.view.cvH>0,'Measured view size ok ('+Math.round(s.view.cvW)+'x'+Math.round(s.view.cvH)+')');
+c(s.errs===0,'No JS errors ('+s.errs+')');
+c(s.sizes.fx<60,'Active effects list bounded ('+s.sizes.fx+')');
+if(live&&s.fps!=null)c(s.fps>5,'Draw rate '+s.fps+'/s, sim tick '+s.tick+'/s, sim speed '+s.simRate+'x');
+if(live&&s.pix&&s.pix.perCol!=null&&s.hist.n>50)c(s.pix.perCol>=1.5,'Trace visible on canvas (ink '+s.pix.perCol+' px/column)');
+return o}
+function cause(s,pr){
+if(!s.ready)return'';
+if(s.errs)return'JS exception thrown: see Errors. A draw/frame error every tick blanks the graph.';
+if(pr&&!pr.ok)return'draw() throws when called: '+pr.err.split('\n')[0];
+if(!isFinite(s.simT)||!isFinite(s.cur.hr))return'Simulation state became NaN/Infinity.';
+if(s.hist.nan)return'NaN/Infinity entered the history array.';
+if(s.hist.unsorted)return'History is out of order, which breaks the binary search used for drawing.';
+if(!(s.canvas.w>0))return'Canvas collapsed to 0 size (layout or memory pressure).';
+if(s.hist.last!=null&&!s.paused&&!s.dead&&s.simT-s.hist.last>=2)return'History stopped recording while sim runs.';
+if(s.pix&&s.pix.perCol!=null&&s.pix.perCol<1.5&&s.hist.n>50&&s.view.viewEnd==null&&!s.paused)return'Data and canvas look fine but nothing is inked: check axis scale / window (win='+Math.round(s.view.win)+'s, fit='+s.view.fit+'). Try Refresh view below.';
+return''}
+var DR=['adrenaline','epi_beta','norepi','iso','acetylcholine','histamine','ephedrine','phentolamine','propranolol','atropine','mepyramine','cimetidine','occlusion','vagC','vagP','vagotomy'],DL=['low','normal','high'];
+function stressStep(){
+var sel=$('drugSelect'),ds=$('doseSelect'),b=$('injectBtn');if(!sel||!b)return;
+if(window.__dbg.S.dead){$('resetBtn').click();addErr('stress','dog died, new animal');return}
+if(b.disabled)return;
+sel.value=DR[Math.floor(Math.random()*DR.length)];sel.dispatchEvent(new Event('change'));
+ds.value=DL[Math.floor(Math.random()*3)];ds.dispatchEvent(new Event('change'));b.click();stress.n++}
+function toggleStress(){
+if(stress){clearInterval(stress.id);stress=null;return ui()}
+var sp=$('speedSelect');if(sp){sp.value='10';sp.dispatchEvent(new Event('change'))}
+stress={n:0,id:setInterval(stressStep,2500),since:Date.now()};ui()}
+var root,pan,badge,open=false,last=null,lastPr=null;
+function el(t,c,x){var e=document.createElement(t);if(c)e.style.cssText=c;if(x!=null)e.textContent=x;return e}
+function btn(t,f){var b=el('button','margin:3px 4px 3px 0;padding:8px 10px;border:1px solid #475569;border-radius:8px;background:#1e293b;color:#e2e8f0;font:12px sans-serif',t);b.onclick=f;return b}
+function report(){return JSON.stringify({userAgent:navigator.userAgent,snapshot:last,verdict:cause(last||{},lastPr),errors:errs,incident:inc,stress:stress?{injections:stress.n}:null},null,1)}
+function copy(){var r=report();if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(r).then(function(){addErr('info','report copied')},fb)}else fb();
+function fb(){var a=el('a');a.href=URL.createObjectURL(new Blob([r],{type:'application/json'}));a.download='dog-debug-report.json';document.body.appendChild(a);a.click();a.remove()}}
+function ui(){
+if(!root)return;var s=last||{},j=judge(s),bad=j.filter(function(x){return x[0]==='bad'}).length,cs=cause(s,lastPr);
+badge.style.background=inc?'#dc2626':bad?'#f59e0b':'#16a34a';badge.textContent='🐞'+(bad?' '+bad:'');
+if(!open){pan.style.display='none';return}
+pan.style.display='block';pan.textContent='';
+pan.appendChild(el('div','font:bold 13px sans-serif;margin-bottom:6px','Dog CAL debugger · wall '+ts()+'s'+(stress?' · STRESS ON ('+stress.n+' drugs)':'')));
+if(inc)pan.appendChild(el('div','background:#7f1d1d;padding:6px;border-radius:6px;margin-bottom:6px','INCIDENT captured at wall '+inc.wall+'s (sim '+Math.round(inc.simT)+'s): '+inc.why));
+if(cs)pan.appendChild(el('div','background:#78350f;padding:6px;border-radius:6px;margin-bottom:6px','Likely cause: '+cs));
+j.forEach(function(x){pan.appendChild(el('div','color:'+(x[0]==='ok'?'#86efac':x[0]==='bad'?'#fca5a5':'#fde68a'),(x[0]==='ok'?'✓ ':x[0]==='bad'?'✗ ':'! ')+x[1]))});
+if(s.ready){var m=[];m.push('hist '+s.hist.n+' pts, t '+(s.hist.first!=null?s.hist.first.toFixed(0):'-')+'..'+(s.hist.last!=null?s.hist.last.toFixed(0):'-')+'s');m.push('view end '+(s.view.viewEnd==null?'live':s.view.viewEnd.toFixed(0))+', win '+Math.round(s.view.win)+'s');if(s.heapMB!=null)m.push('JS heap '+s.heapMB+' MB');m.push('saved state '+s.saveKB+' KB');m.push('fx '+s.sizes.fx+', marks '+s.sizes.marks+', logs '+s.sizes.logs+'/'+s.sizes.logDom+' DOM');
+pan.appendChild(el('div','margin:6px 0;color:#94a3b8',m.join(' | ')))}
+var row=el('div');
+row.appendChild(btn(stress?'■ Stop stress test':'▶ Stress test (auto-give drugs)',toggleStress));
+row.appendChild(btn('Redraw probe',function(){lastPr=window.__dbg.probe();addErr('probe',JSON.stringify(lastPr).slice(0,200));tick()}));
+row.appendChild(btn('Refresh view (app)',function(){$('refreshBtn').click();addErr('info','Refresh view clicked: check if trace returns');setTimeout(tick,300)}));
+row.appendChild(btn('Copy report',copy));
+row.appendChild(btn('Clear incident',function(){inc=null;errs.length=0;ui()}));
+row.appendChild(btn('Clear saved state',function(){try{localStorage.removeItem(window.__dbg.KEY)}catch(e){}addErr('info','saved state cleared')}));
+row.appendChild(btn('Close',function(){open=false;ui()}));
+pan.appendChild(row);
+if(errs.length){pan.appendChild(el('div','margin-top:6px;font-weight:bold','Events/Errors'));errs.slice(-12).reverse().forEach(function(e){pan.appendChild(el('div','color:'+(e.k==='error'||e.k==='promise'?'#fca5a5':'#cbd5e1')+';word-break:break-word','['+e.t+'s] '+e.k+': '+e.m))})}}
+function tick(){
+try{last=snap();
+if(last.ready&&!inc){var live=!last.paused&&!last.dead&&last.view.viewEnd==null,why=null;
+if(last.errs&&errs.some(function(e){return e.k==='error'}))why='JS error: '+errs.filter(function(e){return e.k==='error'}).pop().m;
+else if(!isFinite(last.simT)||!isFinite(last.cur.hr))why='state became NaN';
+else if(last.hist.nan)why='NaN in history';
+else if(live&&last.pix&&last.pix.perCol!=null&&last.pix.perCol<1.5&&last.hist.n>50&&last.simT>20){blank=(typeof blank==='number'?blank:0)+1;if(blank>=3)why='trace blank on canvas for 3+ checks'}
+else blank=0;
+if(why){lastPr=window.__dbg.probe();inc={wall:last.wall,simT:last.simT,why:why,snapshot:last,probe:lastPr,errors:errs.slice(-10)};open=true}}
+}catch(e){addErr('debugger',e.message)}
+ui()}
+var blank=0;
+document.addEventListener('DOMContentLoaded',function(){
+root=el('div','position:fixed;right:8px;bottom:8px;z-index:99999;font-family:monospace');
+badge=el('button','padding:10px 12px;border:0;border-radius:20px;color:#fff;font:bold 14px sans-serif;box-shadow:0 2px 8px #0008','🐞');
+badge.onclick=function(){open=!open;ui()};
+pan=el('div','position:fixed;left:6px;right:6px;bottom:56px;max-height:60vh;overflow:auto;background:#0f172aF2;color:#e2e8f0;padding:10px;border-radius:12px;font:12px/1.5 monospace;box-shadow:0 4px 20px #000a;display:none');
+root.appendChild(badge);document.body.appendChild(pan);document.body.appendChild(root);
+setInterval(tick,1000);tick()});
+})();
+</script>
 <script>
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("sw.js").catch(function(){});
@@ -466,7 +579,7 @@ for(let i=0;i<=A.N;i++){const y=T+ph*(1-i/A.N);g.strokeStyle="#334155";g.beginPa
 g.fillStyle="#38bdf8";g.textAlign="left";g.fillText(A.hLo+i*A.hS,2,y+3);g.fillStyle="#34d399";g.fillText(A.mLo+i*A.mS,w-RM+4,y+3)}
 g.font="bold 10px sans-serif";g.fillStyle="#38bdf8";g.textAlign="left";g.fillText("HR",2,T-5);g.fillStyle="#34d399";g.textAlign="right";g.fillText("MAP",w-2,T-5);g.textAlign="left";g.font="10px sans-serif"}
 function measure(){const r=cv.getBoundingClientRect();cvW=r.width;cvH=r.height;return cvW}
-function draw(){
+function draw(){window.__dN=(window.__dN||0)+1;
 if(!cvW||!cvH)measure();
 const dpr=window.devicePixelRatio||1,w=cvW,h=cvH;
 if(!(w>0&&h>0))return;
@@ -551,7 +664,7 @@ vShuf=VQ[vi].o.map((x,i)=>i);for(let i=vShuf.length-1;i>0;i--){const j=Math.floo
 vDone=false;$("vQ").textContent=VQ[vi].q;$("vOpts").innerHTML="";$("vOpts").hidden=true;$("vAns").hidden=true}
 $("vHint").onclick=()=>{if(vi==null)vNext();vReveal()};$("vShow").onclick=()=>{if(vi==null)vNext();vShow()};$("vNext").onclick=vNext;
 let last=Date.now();
-function frame(){const now=Date.now();
+function frame(){window.__fN=(window.__fN||0)+1;const now=Date.now();
 const dt=Math.min(.1,(now-last)/1000)*(+$("speedSelect").value);last=now;
 const ran=!(paused||S.dead);let rem=(paused||S.dead)?0:dt;while(rem>0){const d=Math.min(.05,rem);step(S,d);rem-=d}
 tickAt=performance.now();
@@ -614,5 +727,6 @@ if(easing){if(viewEnd==null)easing=false;else{const p=Math.min(1,(performance.no
 if(needDraw||!(paused||S.dead)){needDraw=false;draw()}}
 requestAnimationFrame(rafLoop);
 
+window.__dbg={get S(){return S},get LOGS(){return LOGS},KEY:KEY,cv:cv,get v(){return{viewEnd:viewEnd,win:win,paused:paused,cvW:cvW,cvH:cvH,fitOn:fitOn}},probe:function(){var a=performance.now();try{draw();return{ok:1,ms:performance.now()-a}}catch(e){return{ok:0,err:String(e&&e.stack||e)}}}};
 })();</script>
 </body></html>
