@@ -274,7 +274,7 @@ if(k==="epi_beta")return"Adrenaline 0.1 mcg/kg: no net change in HR or MAP (prac
 let t="Adrenaline ("+lv+"): BP rises (alpha-1 vasoconstriction, beta-1 inotropy). ";
 t+=s.A>.3?"Alpha receptors are blocked: unopposed beta-2 vasodilation, BP falls (adrenaline reversal)."
 :s.B>.3?"Beta receptors are blocked: alpha pressor action is unmasked, bigger rise, reflex bradycardia."
-:baro(s)?"Biphasic response: MAP rises first (alpha predominates) with reflex vagal slowing of HR, then returns as the concentration falls."
+:baro(s)?"Biphasic response: MAP rises first (alpha predominates) with reflex vagal slowing of HR, then, as the concentration falls, alpha action fades first and beta-2 vasodilation persists, so MAP dips slightly below baseline before recovering."
 :"No vagal brake (atropine or vagotomy): unopposed beta-1 tachycardia.";
 if(m<=.5&&s.A<.3&&s.B<.3)t+=" Diastolic may dip (beta-2 vasodilation).";return t}
 case"norepi":add("ne",{rise:4,tau:25});
@@ -304,16 +304,17 @@ return s.atM>0?"Peripheral vagus stimulation: muscarinic receptors blocked, no r
 case"vagotomy":if(s.vag)return"Both vagi are already cut.";s.vag=true;return"Both vagi cut: neural vagal tone lost, HR rises. Receptors are intact, so ACh still works."}
 return""}
 function env(e){if(e.age<e.rise)return e.age/e.rise;if(e.age<e.rise+e.hold)return 1;return Math.exp(-(e.age-e.rise-e.hold)/e.tau)}
+function envK(e,k){if(e.age<e.rise+e.hold)return env(e);return Math.exp(-(e.age-e.rise-e.hold)/(e.tau*k))}
 function step(s,dt){
-s.t+=dt;s.fx.forEach(e=>e.age+=dt);s.fx=s.fx.filter(e=>e.age<e.rise+e.hold+e.tau*5);
+s.t+=dt;s.fx.forEach(e=>e.age+=dt);s.fx=s.fx.filter(e=>e.age<e.rise+e.hold+e.tau*(e.type==="epi"?7:5));
 while(s.q.length&&s.t>=s.q[0].at){const j=s.q.shift();startTracker(s,j.label);s.marks.push({at:s.t,l:shortLbl(j.label)});logMessage(inject(s,j.k,j.m,j.o))}
 s.S+=(1-s.S)*(1-Math.exp(-dt/300));
 const rk=1-Math.exp(-dt/6);s.Af+=(s.A-s.Af)*rk;s.Bf+=(s.B-s.Bf)*rk;
 const al=1-s.Af,be=1-s.Bf;
 let dSys=0,dDia=0,dHR=0,rSys=0,rDia=0;
-for(const e of s.fx){const a=env(e),m=e.m;let ds=0,dd=0,dh=0,reflex=true;
+for(const e of s.fx){let a=env(e);const m=e.m;let ds=0,dd=0,dh=0,reflex=true;
 switch(e.type){
-case"epi":{const me0=Math.max(0,(m-1/30)/(1-1/30)),me=me0>1?1+.4*(me0-1):me0,bb=Math.min(1,me/.05),f1=Math.max(me,.5*bb)*be;ds=64*me*al+16.5*f1;dd=64*me*al-41*bb*be;dh=11*f1;break}
+case"epi":{const me0=Math.max(0,(m-1/30)/(1-1/30)),me=me0>1?1+.4*(me0-1):me0,bb=Math.min(1,me/.05),f1=Math.max(me,.5*bb)*be,mc=Math.min(1,me),aA=envK(e,1-.7*mc*be),aS=envK(e,1-.8*mc*al),aB=envK(e,1-.95*mc*al),u=e.age-e.rise-e.hold,G=u>0?4*(Math.exp(-u/12)-Math.exp(-u/6)):0;ds=64*me*al*aA+16.5*f1*aS;dd=64*me*al*aA-41*bb*be*aB-40*mc*be*al*G;dh=11*f1*aS;a=1;break}
 case"ne":ds=64.5*al*m;dd=32.3*al*m;break;
 case"iso":ds=5*m*be;dd=-51*m*be;dh=43*m*be;break;
 case"eph":ds=(143*al+16*be)*m;dd=(100*al-5*be)*m;dh=42*m*al*be;reflex=false;break;
