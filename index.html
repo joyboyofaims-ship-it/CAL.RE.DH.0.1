@@ -39,18 +39,29 @@ nav a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 #splash button{font:inherit;font-weight:700;padding:11px 18px;border-radius:99px;border:1px solid var(--accent);cursor:pointer}
 #splash .nx{background:var(--accent);color:var(--on-ac)}
 #splash .sk{background:transparent;color:var(--accent)}
+#splash{overflow-y:auto}
+#splash .big[hidden],#splash .pic[hidden]{display:none}
+#splash .pic{margin:0;flex:none;width:100%;max-width:420px;height:clamp(110px,24vh,180px);border-radius:18px;overflow:hidden;background:var(--line);box-shadow:0 10px 30px rgba(0,0,0,.18)}
+#splash .pic img{width:100%;height:100%;object-fit:cover;display:block}
+#splash .cr{margin-top:10px;font-size:.7rem;line-height:1.35;color:var(--muted)}
+#splash .cr:empty{display:none}
+#splash .cr a{color:inherit}
+@keyframes kb{from{transform:scale(1)}to{transform:scale(1.12)}}
+@keyframes fadein{from{opacity:0}}
 @keyframes bob{50%{transform:translateY(-10px) rotate(-5deg)}}
 @keyframes pop{from{opacity:0;transform:translateY(12px) scale(.96)}}
 @keyframes drain{to{transform:scaleX(0)}}
-@media (prefers-reduced-motion:reduce){#splash .big,#splash .card{animation:none}}
+@media (prefers-reduced-motion:reduce){#splash .big,#splash .card,#splash .pic img{animation:none!important}}
 </style></head><body>
 <div id="splash" role="status" aria-live="polite">
 <div class="brand">💊 Pharmacology CAL</div>
 <div class="big" id="emo" aria-hidden="true"></div>
+<figure class="pic" id="pic" hidden><img id="pi" alt=""></figure>
 <div class="card">
 <span class="tag">🤯 Did you know?</span>
 <h2 id="ft"></h2>
 <p id="fb"></p>
+<div class="cr" id="cr"></div>
 <div class="bar"><i id="bar"></i></div>
 </div>
 <div class="row"><button class="nx" id="nx" type="button">Another fact 🎲</button><button class="sk" id="sk" type="button">Skip ➜</button></div>
@@ -71,31 +82,123 @@ nav a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 (function(){
 var F=[
 ["💊","A single aspirin “lasts” a week","Platelets can’t make new enzyme, so one dose blocks them until they’re replaced, about 7 to 10 days."],
-["💥","Dynamite and a heart medicine are the same molecule","Nitroglycerin goes under the tongue for angina. Alfred Nobel was once prescribed it himself."],
-["🐍","A snake bite led to a BP tablet","Captopril was designed from the venom of the Brazilian pit viper, which crashes its prey’s blood pressure."],
+["💥","Dynamite and a heart medicine are the same molecule","Nitroglycerin goes under the tongue for angina. Alfred Nobel was once prescribed it himself.","https://upload.wikimedia.org/wikipedia/commons/b/bb/Alfred_Nobel_by_Bolak%2C_1915.jpg","Photo: L. Bolak / Wikimedia Commons / Public Domain"],
+["🐍","A snake bite led to a BP tablet","Captopril was designed from the venom of the Brazilian pit viper, which crashes its prey’s blood pressure.","https://upload.wikimedia.org/wikipedia/commons/a/a6/Bothrops_jararaca.jpg","Photo: Leandro Avelar / Wikimedia Commons / CC BY-SA 4.0"],
 ["💉","The deadliest known toxin sits in beauty clinics","Botulinum toxin blocks acetylcholine release. In tiny doses it smooths wrinkles."],
-["💙","Viagra was meant for angina","Sildenafil failed as a heart drug, but the trial volunteers noticed a different effect."],
-["💇","A hair-growth lotion started as a BP pill","Minoxidil lowered blood pressure and also made hair grow, so the idea was turned around."],
+["💙","Viagra was meant for angina","Sildenafil failed as a heart drug, but the trial volunteers noticed a different effect.","https://upload.wikimedia.org/wikipedia/commons/3/39/Sildenafil_structure.png","Image: Edgar181 / Wikimedia Commons / Public Domain"],
+["💇","A hair-growth lotion started as a BP pill","Minoxidil lowered blood pressure and also made hair grow, so the idea was turned around.","https://upload.wikimedia.org/wikipedia/commons/5/5e/Minoxidil-from-xtal-3D-balls.png","Image: Benjah-bmm27 / Wikimedia Commons / Public Domain"],
 ["🍊","Your breakfast grapefruit can change your tablet’s strength","It blocks the gut enzyme CYP3A4, so some drugs reach much higher levels."],
-["👁️","Atropine is named after the Fate who cuts your life thread","Belladonna means “beautiful lady”, because women dilated their pupils with it to look attractive."],
+["👁️","Atropine is named after the Fate who cuts your life thread","Belladonna means “beautiful lady”, because women dilated their pupils with it to look attractive.","https://upload.wikimedia.org/wikipedia/commons/8/85/Atropa_belladonna_003.JPG","Photo: H. Zell / Wikimedia Commons / CC BY-SA 3.0"],
 ["🧡","Rifampicin turns tears orange","It can also stain soft contact lenses for good."],
 ["🐡","Pufferfish and your dentist use the same trick","Tetrodotoxin and lignocaine both block sodium channels. One numbs a tooth and the other can kill you."],
 ["🏹","Curare paralyses but keeps you awake","It’s an arrow poison, which is why muscle relaxants are only given with anaesthesia."],
-["🐶","Heparin is named after the liver","Hepar is Greek for liver, and it was first found in dog liver."],
+["🐶","Heparin is named after the liver","Hepar is Greek for liver, and it was first found in dog liver.","https://upload.wikimedia.org/wikipedia/commons/7/7b/Affenpinscher_1.jpg","Photo: Pleple2000 / Wikimedia Commons / CC BY 2.5"],
 ["😴","Morphine is named after Morpheus","Morpheus was the Greek god of dreams."],
-["🎻","Some musicians take a BP pill for stage fright","Propranolol stops the shaking hands and racing heart, though this is off-label."],
+["🎻","Some musicians take a BP pill for stage fright","Propranolol stops the shaking hands and racing heart, though this is off-label.","https://upload.wikimedia.org/wikipedia/commons/d/df/Propranolol_structure.png","Image: Edgar181 / Wikimedia Commons / Public Domain"],
 ["🥱","Ephedrine is a drug that gets tired","Repeat the dose and the effect shrinks, because it uses up the noradrenaline stores it releases. Try it in the dog simulator."],
 ["🔄","Adrenaline can make blood pressure fall","Give an alpha blocker first and the same dose drops BP instead of raising it (Dale’s reversal). Reproduce it in the dog simulator."],
 ["🌸","Foxglove is a pretty flower and the source of digoxin","The dose that helps the heart and the dose that harms it are very close."],
-["🤧","One chemical, two jobs","Histamine runs your nose through H1 receptors and drives stomach acid through H2. That’s why cimetidine works for ulcers."]
+["🤧","One chemical, two jobs","Histamine runs your nose through H1 receptors and drives stomach acid through H2. That’s why cimetidine works for ulcers."],
+["🦎","Exenatide","Exenatide, a diabetes drug, was first found in Gila monster saliva. Even lizard spit made it into the textbook.","https://upload.wikimedia.org/wikipedia/commons/e/ec/Gila_monster_%28Heloderma_suspectum%29.jpg","Photo: Theo Kruse / Burgers' Zoo / Wikimedia Commons / CC BY-SA 4.0"],
+["🐌","Ziconotide","Ziconotide, an intrathecal painkiller, comes from cone snail venom. One of nature's most dangerous snails is now a pain clinic's strongest tool.","https://upload.wikimedia.org/wikipedia/commons/1/18/Conus_californicus.jpg","Photo: Steve Lonhart / NOAA / Wikimedia Commons / Public Domain"],
+["🧫","Tamoxifen","Tamoxifen started life as a failed contraceptive. It became a cornerstone of breast cancer therapy.","https://upload.wikimedia.org/wikipedia/commons/2/23/Tamoxifen-3D-sticks.png","Image: Benjah-bmm27 / Wikimedia Commons / Public Domain"],
+["⚡","Cisplatin","Cisplatin was discovered by accident. Rosenberg ran an electric current through platinum electrodes and bacteria stopped dividing, because the electrodes were leaking platinum compounds.","https://upload.wikimedia.org/wikipedia/commons/0/07/Platinum_%28Pt%29_crystals.jpg","Photo: Alchemist-hp / Wikimedia Commons / CC BY-SA 3.0"],
+["🌸","Vincristine","Vincristine comes from the Madagascar periwinkle, studied for diabetes. It was useless there but wiped out white blood cells, so it became a leukemia drug.","https://upload.wikimedia.org/wikipedia/commons/b/b3/Catharanthus_roseus_flowers_in_Kerala_.jpg","Photo: Shagil Kannur / Wikimedia Commons / CC BY-SA 4.0"],
+["💣","Chemo's beginning","Chemotherapy has roots in Bari harbor, 1943, when a bombed ship leaked mustard gas. Survivors had crashed white cell counts, which inspired nitrogen mustard as a cancer drug.","https://upload.wikimedia.org/wikipedia/commons/7/7b/Bari_harbour_after_bombing_1943.jpg","Photo: US Navy / Wikimedia Commons / Public Domain"],
+["🪖","Dimercaprol (BAL)","BAL stands for British Anti-Lewisite. It was made to counter a WWII chemical weapon and now treats arsenic and mercury poisoning.","https://upload.wikimedia.org/wikipedia/commons/1/16/Arsenic_trioxide.jpg","Photo: Walkerma / Wikimedia Commons / Public Domain"],
+["👁️","Bimatoprost","Bimatoprost was a glaucoma drug until patients grew suspiciously long eyelashes. It was rebranded as Latisse.","https://upload.wikimedia.org/wikipedia/commons/3/36/Human_eyelashes.jpg","Photo: Thomas Geppert / Wikimedia Commons / CC BY 2.0"],
+["😴","Diphenhydramine","A first-generation antihistamine crosses the BBB and sedates you, so diphenhydramine's drowsiness is now sold as a sleep aid.","https://upload.wikimedia.org/wikipedia/commons/4/4c/Diphenhydramine_structure.png","Image: Edgar181 / Wikimedia Commons / Public Domain"],
+["🚫","Disulfiram","Disulfiram was found when rubber factory workers felt terrible after drinking. The compound they handled blocked aldehyde dehydrogenase.","https://upload.wikimedia.org/wikipedia/commons/f/fe/Disulfiram-3D-balls.png","Image: Benjah-bmm27 / Wikimedia Commons / Public Domain"],
+["😊","Iproniazid","Iproniazid, a TB drug, made patients unusually cheerful. That observation led to the first antidepressant, an MAO inhibitor.","https://upload.wikimedia.org/wikipedia/commons/6/69/Iproniazid_structure.png","Image: Edgar181 / Wikimedia Commons / Public Domain"],
+["🇺🇸","Warfarin and Eisenhower","President Eisenhower was treated with warfarin after his 1955 heart attack, which helped make the drug respectable after its rat poison days.","https://upload.wikimedia.org/wikipedia/commons/c/c5/Dwight_D._Eisenhower%2C_official_portrait%2C_1959.jpg","Photo: US Army / Wikimedia Commons / Public Domain"],
+["🍄","Ergot","Ergot poisoning (St. Anthony's fire) caused burning limbs and hallucinations in medieval Europe. Ergotamine and bromocriptine descend from it.","https://upload.wikimedia.org/wikipedia/commons/1/1c/Claviceps_purpurea.JPG","Photo: Dominique Jacquin / Wikimedia Commons / Public Domain"],
+["☠️","Sulfanilamide elixir","The 1937 sulfanilamide elixir used diethylene glycol as a solvent and killed over 100 people. That disaster led to the 1938 US drug safety law.","https://upload.wikimedia.org/wikipedia/commons/d/d4/Diethylene-glycol-2D-skeletal.png","Image: Edgar181 / Wikimedia Commons / Public Domain"],
+["🛡️","Frances Kelsey","Frances Kelsey at the FDA refused to approve thalidomide in the US because the safety data was weak. She likely prevented a massive tragedy.","https://upload.wikimedia.org/wikipedia/commons/8/88/Frances_Oldham_Kelsey_1962.jpg","Photo: US FDA / Wikimedia Commons / Public Domain"],
+["🍈","Penicillin yields","Much of the penicillin mass-produced in the 1940s came from a mold strain found on a cantaloupe in a Peoria market. It gave far higher yields than Fleming's original.","https://upload.wikimedia.org/wikipedia/commons/e/e5/Cantaloupe_and_cantaloupe_slice.jpg","Photo: Scott Bauer / USDA / Wikimedia Commons / Public Domain"],
+["🧔","Finasteride","Finasteride was inspired by Dominican boys with 5α-reductase deficiency who looked female at birth and developed male features at puberty. They did not go bald and had tiny prostates.","https://upload.wikimedia.org/wikipedia/commons/1/14/Finasteride-3D-balls.png","Image: Benjah-bmm27 / Wikimedia Commons / Public Domain"],
+["🍷","Cocaine","Cocaine is the only local anesthetic that causes vasoconstriction, since it blocks norepinephrine reuptake. The rest cause vasodilation, which is why adrenaline is added to lidocaine.","https://upload.wikimedia.org/wikipedia/commons/3/30/Erythroxylum_coca_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-049.jpg","Illustration: Franz Eugen Köhler / Wikimedia Commons / Public Domain"],
+["🔵","Methylene blue","Methylene blue treats methemoglobinemia and turns urine blue-green.","https://upload.wikimedia.org/wikipedia/commons/e/ea/Methylene_blue_aqueous_solution.jpg","Photo: Wjhonson / Wikimedia Commons / Public Domain"],
+["🍊","Phenazopyridine","Phenazopyridine turns urine bright orange. It is harmless, but patients panic.","https://upload.wikimedia.org/wikipedia/commons/9/91/Phenazopyridine_hydrochloride.jpg","Image: Wikimedia Commons / Public Domain"],
+["🍸","Quinine and tonic","Quinine gave us tonic water, and gin was supposedly added to make malaria prevention more bearable.","https://upload.wikimedia.org/wikipedia/commons/9/9e/Cinchona_calisaya_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-032.jpg","Illustration: Franz Eugen Köhler / Wikimedia Commons / Public Domain"],
+["💓","Digoxin","Digoxin's story began with William Withering in 1785, who tested a village woman's herbal dropsy remedy and identified foxglove as the active ingredient.","https://upload.wikimedia.org/wikipedia/commons/8/87/Digitalis_purpurea_ab1.jpg","Photo: Alvesgaspar / Wikimedia Commons / Public Domain"],
+["🧪","Lithium","John Cade was testing uric acid salts on guinea pigs in 1949 and noticed lithium made them calm. That led to lithium in psychiatry.","https://upload.wikimedia.org/wikipedia/commons/3/3f/Lithium_under_oil.jpg","Photo: Materialscientist / Wikimedia Commons / CC BY 3.0"],
+["🕶️","Chlorpromazine","Chlorpromazine was first tried to potentiate anesthesia. Patients became calmly indifferent, which launched modern psychiatry.","https://upload.wikimedia.org/wikipedia/commons/8/80/Chlorpromazine_structure.png","Image: Edgar181 / Wikimedia Commons / Public Domain"],
+["🔔","Heroin","Bayer marketed heroin in 1898 as a non-addictive cough remedy. Their other 1890s product was aspirin.","https://upload.wikimedia.org/wikipedia/commons/e/ec/Heroine_bottle_Bayer.jpg","Photo: Bayer / Wikimedia Commons / Public Domain"],
+["👁️","Latanoprost","Latanoprost eye drops can permanently darken the iris. Glaucoma treatment with a free eye-color upgrade nobody ordered.","https://upload.wikimedia.org/wikipedia/commons/1/1d/Latanoprost_structure.png","Image: Edgar181 / Wikimedia Commons / Public Domain"],
+["💩","Orlistat","Orlistat blocks fat absorption, and the unabsorbed fat leaves as oily stools. Dark trousers are recommended.","https://upload.wikimedia.org/wikipedia/commons/7/7b/Orlistat-3D-balls.png","Image: Benjah-bmm27 / Wikimedia Commons / Public Domain"],
+["💨","Acarbose","Acarbose delays carbohydrate digestion, so gut bacteria ferment the leftovers. Your blood sugar improves, your social life takes a hit.","https://upload.wikimedia.org/wikipedia/commons/f/fc/Acarbose_structure.png","Image: Edgar181 / Wikimedia Commons / Public Domain"],
+["🤝","Antacid peace treaty","Aluminium hydroxide constipates and magnesium hydroxide causes diarrhea. Mixed together, they cancel each other's side effects.","https://upload.wikimedia.org/wikipedia/commons/e/e3/Magnesium_hydroxide_powder.jpg","Photo: Leoba / Wikimedia Commons / CC BY-SA 3.0"],
+["🔥","Isotretinoin","Isotretinoin cures severe acne but needs monthly pregnancy tests and a registry because it is a powerful teratogen. Clear skin, extensive paperwork.","https://upload.wikimedia.org/wikipedia/commons/e/e0/Isotretinoin_structure.png","Image: Edgar181 / Wikimedia Commons / Public Domain"],
+["☕","Levothyroxine","Levothyroxine should be taken on an empty stomach, and even your morning coffee can reduce its absorption.","https://upload.wikimedia.org/wikipedia/commons/4/45/A_small_cup_of_coffee.jpg","Photo: Mstyslav Chernov / Wikimedia Commons / CC BY-SA 4.0"],
+["🍄","Statins","Statins began with Akira Endo, who found compactin in a Penicillium mold. The mold made it to fight microbes, and it accidentally helps your cholesterol.","https://upload.wikimedia.org/wikipedia/commons/0/07/Penicillium_chrysogenum.jpg","Photo: CDC / Wikimedia Commons / Public Domain"],
+["🌲","Paclitaxel","Paclitaxel (Taxol) came from Pacific yew bark, and early treatment needed bark from several trees per patient. Conservationists were not thrilled.","https://upload.wikimedia.org/wikipedia/commons/a/ae/Taxus_brevifolia_0b.jpg","Photo: Walter Siegmund / Wikimedia Commons / CC BY-SA 3.0"],
+["🏝️","Sirolimus","Sirolimus was found in soil from Easter Island (Rapa Nui), hence rapamycin. Most drugs don't need a passport.","https://upload.wikimedia.org/wikipedia/commons/a/aa/Moai_November_2009_8.jpg","Photo: Axxis / Wikimedia Commons / CC BY 2.5"],
+["🇳🇴","Cyclosporine","Cyclosporine came from a Norwegian soil sample an employee brought back from holiday. Best souvenir ever.","https://upload.wikimedia.org/wikipedia/commons/b/b3/Geirangerfjord_editorial.jpg","Photo: Simo Räsänen / Wikimedia Commons / CC BY-SA 3.0"],
+["⭐","Oseltamivir","Oseltamivir was originally made from shikimic acid from Chinese star anise. Flu season versus your Christmas spices.","https://upload.wikimedia.org/wikipedia/commons/7/77/Illicium_verum_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-074.jpg","Illustration: Franz Eugen Köhler / Wikimedia Commons / Public Domain"],
+["🌿","Artemisinin","Artemisinin came from sweet wormwood, found by Tu Youyou after searching ancient Chinese texts. She won the 2015 Nobel Prize.","https://upload.wikimedia.org/wikipedia/commons/e/ec/Artemisia_annua_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-010.jpg","Illustration: Franz Eugen Köhler / Wikimedia Commons / Public Domain"],
+["🫘","Fava beans","Fava beans naturally contain levodopa, but they can also trigger hemolysis in G6PD deficiency. Same bean, hero and villain.","https://upload.wikimedia.org/wikipedia/commons/9/91/Vicia_faba_pods.jpg","Photo: Rasbak / Wikimedia Commons / CC BY-SA 3.0"],
+["🧪","Cyanide antidote","Cyanide poisoning can be treated with sodium nitrite, which deliberately makes methemoglobin to grab the cyanide. You poison a little to save from a lot.","https://upload.wikimedia.org/wikipedia/commons/5/50/Sodium_nitrite.jpg","Photo: Walkerma / Wikimedia Commons / CC BY-SA 3.0"],
+["🔴","Hydroxocobalamin","Hydroxocobalamin, a cyanide antidote, can turn the patient's skin and urine deep red. Alarming, but it is working.","https://upload.wikimedia.org/wikipedia/commons/6/62/Hydroxocobalamin-from-xtal-3D-balls.png","Image: Benjah-bmm27 / Wikimedia Commons / Public Domain"],
+["💊","PPIs","Proton pump inhibitors like omeprazole are prodrugs that need stomach acid to become active. The drug uses the enemy to get started.","https://upload.wikimedia.org/wikipedia/commons/e/e6/Omeprazole-3D-balls.png","Image: Benjah-bmm27 / Wikimedia Commons / Public Domain"],
+["🎯","Acyclovir","Acyclovir only becomes active when the herpes virus's own thymidine kinase phosphorylates it. The virus arms the weapon used against it. Gertrude Elion shared the 1988 Nobel for this line of work.","https://upload.wikimedia.org/wikipedia/commons/5/52/Gertrude_B_Elion_NYWTS.jpg","Photo: NYWTS / Wikimedia Commons / Public Domain"],
+["🪱","DHFR twins","Trimethoprim and methotrexate both hit DHFR. Trimethoprim prefers bacterial DHFR, while methotrexate hits ours, hence very different safety profiles.","https://upload.wikimedia.org/wikipedia/commons/5/5a/Methotrexate-3D-balls.png","Image: Benjah-bmm27 / Wikimedia Commons / Public Domain"],
+["🤏","Oxytocin and vasopressin","Oxytocin and vasopressin differ by only two amino acids, so high-dose oxytocin can cause water retention.","https://upload.wikimedia.org/wikipedia/commons/b/b8/Oxytocin-3D-balls.png","Image: Benjah-bmm27 / Wikimedia Commons / Public Domain"],
+["🏃","Loperamide","Loperamide is an opioid that stays out of your brain because P-glycoprotein pumps it out. Take mega doses and heart toxicity becomes the problem.","https://upload.wikimedia.org/wikipedia/commons/8/86/Loperamide_structure.png","Image: Edgar181 / Wikimedia Commons / Public Domain"],
+["🕵️","Truth serums","Truth serums like scopolamine and thiopental don't make people honest, just drowsy and suggestible. Spies were disappointed.","https://upload.wikimedia.org/wikipedia/commons/7/7b/Datura_stramonium_flower.jpg","Photo: H. Zell / Wikimedia Commons / CC BY-SA 3.0"],
+["🐢","Renal-dose dopamine","Renal-dose dopamine was taught for decades to protect kidneys. Trials didn't back it up, but the myth survived anyway.","https://upload.wikimedia.org/wikipedia/commons/7/74/Kidney_renal_corpuscle.jpg","Photo: Jpogi / Wikimedia Commons / CC BY-SA 3.0"],
+["🤥","Penicillin allergy","Most people labeled penicillin-allergic aren't when tested. The label sticks around anyway and pushes patients to broader, costlier antibiotics.","https://upload.wikimedia.org/wikipedia/commons/6/64/Skin_allergy_test.jpg","Photo: Uwe Gille / Wikimedia Commons / CC BY-SA 3.0"],
+["🍁","Colchicine","Colchicine comes from autumn crocus and treats gout. Old regimens dosed until diarrhea, which is a bold way to titrate.","https://upload.wikimedia.org/wikipedia/commons/1/18/Colchicum_autumnale_kz01.jpg","Photo: Lucian Bolca / Wikimedia Commons / CC BY-SA 3.0"],
+["☕","Caffeine","Caffeine blocks adenosine receptors. The lethal dose is roughly 10 g, around 100 cups of coffee, so your jittery limit comes far earlier.","https://upload.wikimedia.org/wikipedia/commons/c/c5/Coffee_grains.jpg","Photo: GFreihalter / Wikimedia Commons / CC BY-SA 3.0"],
+["🚬","Nicotine vs curare","Nicotine acts on the same type of receptors that curare blocks, so smokers and arrow-poison victims are on opposite sides of one receptor.","https://upload.wikimedia.org/wikipedia/commons/d/d3/Nicotiana_tabacum_flower.jpg","Photo: H. Zell / Wikimedia Commons / CC BY-SA 3.0"],
+["🧓","Mary Walker","In 1934 Mary Walker noticed myasthenia gravis looked like curare poisoning, tried the anticholinesterase physostigmine, and it worked. Neostigmine followed."],
+["💀","AZT","AZT was a failed cancer drug synthesized in the 1960s. In 1987 it became the first approved HIV treatment.","https://upload.wikimedia.org/wikipedia/commons/f/fc/Zidovudine-3D-balls.png","Image: Benjah-bmm27 / Wikimedia Commons / Public Domain"],
+["🌱","Vitamin K","Vitamin K is named from the Danish word Koagulation. Warfarin blocks it, which is why vitamin K reverses warfarin.","https://upload.wikimedia.org/wikipedia/commons/3/36/Spinach_leaves.jpg","Photo: Rasbak / Wikimedia Commons / CC BY-SA 3.0"],
+["🍠","The Pill","The contraceptive pill owes its early production to diosgenin from Mexican wild yams. Russell Marker found a cheap steroid source in a root vegetable.","https://upload.wikimedia.org/wikipedia/commons/f/ff/Dioscorea_villosa_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-089.jpg","Illustration: Franz Eugen Köhler / Wikimedia Commons / Public Domain"],
+["💦","Pilocarpine","Pilocarpine makes you sweat and drool, which is exactly why it treats dry mouth in Sjögren's. A feature, not a bug.","https://upload.wikimedia.org/wikipedia/commons/8/84/Pilocarpus_jaborandi_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-106.jpg","Illustration: Franz Eugen Köhler / Wikimedia Commons / Public Domain"],
+["🐴","Ketamine","Ketamine is an anesthetic with hallucinogenic dissociation, famous in veterinary medicine, and its derivative esketamine is now used for depression.","https://upload.wikimedia.org/wikipedia/commons/b/bc/Ketamine-3D-balls.png","Image: Benjah-bmm27 / Wikimedia Commons / Public Domain"],
+["🌾","Ephedra","Ephedra (ma huang) has been used in Chinese medicine for thousands of years, and now pseudoephedrine sits behind the pharmacy counter.","https://upload.wikimedia.org/wikipedia/commons/e/ec/Ephedra_sinica_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-093.jpg","Illustration: Franz Eugen Köhler / Wikimedia Commons / Public Domain"],
+["💉","Epinephrine","Epinephrine in anaphylaxis has no absolute contraindication. Hesitating is more dangerous than the injection, and the thigh is the target.","https://upload.wikimedia.org/wikipedia/commons/0/07/EpiPen_02.jpg","Photo: Bobjgalindo / Wikimedia Commons / Public Domain"],
+["🧊","Nitroglycerin","Sublingual nitroglycerin skips first-pass metabolism, so it works in minutes. Swallowed, the liver destroys most of it, which is why angina patients keep the tablet under the tongue.","https://upload.wikimedia.org/wikipedia/commons/d/de/Nitroglycerin-3D-balls.png","Image: Benjah-bmm27 / Wikimedia Commons / Public Domain"]
 ];
-var $=function(i){return document.getElementById(i)},sp=$("splash"),last=-1,timer,pending=null;
+var RARE_CHANCE=0.001; /* 1 in 1000 */
+var RARE=["😅","This app has a humble origin","It was created by a student who scored only 50% in an open-book test."];
+var $=function(i){return document.getElementById(i)},sp=$("splash"),last=-1,timer,pending=null,seq=0,okImg={};
+function fname(u){return u.split("/").pop()}
+function loadImg(u,cb){
+  if(u in okImg)return cb(okImg[u]);
+  var tries=["https://commons.wikimedia.org/wiki/Special:FilePath/"+fname(u)+"?width=640",u];
+  (function go(k){
+    if(k>=tries.length){okImg[u]=null;return cb(null)}
+    var im=new Image();
+    im.onload=function(){okImg[u]=tries[k];cb(tries[k])};
+    im.onerror=function(){go(k+1)};
+    im.src=tries[k];
+  })(0);
+}
+function showPic(f,ms,tok){
+  var pic=$("pic"),pi=$("pi"),emo=$("emo"),cr=$("cr");
+  pic.hidden=true;emo.hidden=false;cr.textContent="";
+  if(!f[3])return;
+  loadImg(f[3],function(u){
+    if(tok!==seq||!u)return;
+    pi.alt=f[1];pi.src=u;
+    pi.style.animation="none";void pi.offsetWidth;
+    pi.style.animation="fadein .5s ease, kb "+ms+"ms linear forwards";
+    pic.hidden=false;emo.hidden=true;
+    var a=document.createElement("a");
+    a.href="https://commons.wikimedia.org/wiki/File:"+fname(f[3]);a.target="_blank";a.rel="noopener noreferrer";a.textContent="Source";
+    cr.textContent=f[4]+" · ";cr.appendChild(a);
+  });
+}
 function readMs(t){var w=t.split(/\s+/).length;return Math.max(7000,3000+w*350)}
 function show(){
   clearTimeout(timer);
-  var i;do{i=Math.floor(Math.random()*F.length)}while(i===last);last=i;
-  var ms=readMs(F[i][1]+" "+F[i][2]);
-  $("emo").textContent=F[i][0];$("ft").textContent=F[i][1];$("fb").textContent=F[i][2];
+  var f;
+  if(Math.random()<RARE_CHANCE){f=RARE}
+  else{var i;do{i=Math.floor(Math.random()*F.length)}while(i===last);last=i;f=F[i]}
+  var ms=readMs(f[1]+" "+f[2]);
+  $("emo").textContent=f[0];$("ft").textContent=f[1];$("fb").textContent=f[2];
+  showPic(f,ms,++seq);
   var b=$("bar");b.style.animation="none";void b.offsetWidth;b.style.animation="drain "+ms+"ms linear forwards";
   var c=sp.querySelector(".card");c.style.animation="none";void c.offsetWidth;c.style.animation="";
   sp.classList.remove("hide");timer=setTimeout(done,ms);
