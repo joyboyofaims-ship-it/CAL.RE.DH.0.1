@@ -613,11 +613,23 @@ function showPic(f,ms,tok){
   });
 }
 function readMs(t){var w=t.split(/\s+/).length;return Math.max(7000,3000+w*350)}
+var DECK_KEY="pcal_deck_v1";
+function loadDeck(){try{var d=JSON.parse(localStorage.getItem(DECK_KEY)||"[]");if(Array.isArray(d))return d.filter(function(n){return Number.isInteger(n)&&n>=0&&n<F.length})}catch(e){}return[]}
+function saveDeck(d){try{localStorage.setItem(DECK_KEY,JSON.stringify(d))}catch(e){}}
+function nextIdx(){
+  var d=loadDeck();
+  if(!d.length){
+    d=[];for(var k=0;k<F.length;k++)d.push(k);
+    for(var j=d.length-1;j>0;j--){var r=Math.floor(Math.random()*(j+1));var t=d[j];d[j]=d[r];d[r]=t}
+    if(d.length>1&&d[d.length-1]===last){var t2=d[0];d[0]=d[d.length-1];d[d.length-1]=t2}
+  }
+  var i=d.pop();saveDeck(d);return i;
+}
 function show(){
   clearTimeout(timer);
   var f;
   if(Math.random()<RARE_CHANCE){f=RARE[Math.floor(Math.random()*RARE.length)]}
-  else{var i;do{i=Math.floor(Math.random()*F.length)}while(i===last);last=i;f=F[i]}
+  else{var i=nextIdx();last=i;f=F[i]}
   var ms=readMs(f[1]+" "+f[2]);
   $("emo").textContent=f[0];$("ft").textContent=f[1];$("fb").textContent=f[2];
   showPic(f,ms,++seq);
