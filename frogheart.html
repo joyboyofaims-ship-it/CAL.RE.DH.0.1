@@ -49,7 +49,7 @@ select{width:100%;min-height:48px;padding:0 12px;border-radius:10px;border:1px s
 .change-item{background:var(--bg);border-radius:10px;padding:9px 11px}
 .change-label{font-size:.72rem;font-weight:650;color:var(--mute)}
 .change-value{font-weight:700;font-size:.9rem}
-.mechanism{font-size:.88rem;line-height:1.55}
+.mechanism{font-size:.88rem;line-height:1.55;white-space:pre-line}
 .view{padding:10px 12px;gap:8px}
 .ctl{display:grid;grid-template-columns:44px 1fr;align-items:center;gap:8px}
 .lbl{font-size:.74rem;font-weight:650;color:var(--mute)}
@@ -186,7 +186,7 @@ var DRUM="#0b1f24",TRACE="#e9f6f2",GRID="#2c4f57",MARK="#f2b84b";
 var COMMON={
  ringer:{n:"Frog Ringer",mech:"Frog Ringer is the control perfusate; it provides the reference without an intended pharmacological intervention."},
  epi:{n:"Epinephrine (adrenaline)",dose:"2 mcg",bl:"prop",mech:"β₁/Gs → adenylyl cyclase → cAMP/PKA signalling increases pacemaker rate, Ca²⁺-dependent contractility and relaxation. Propranolol blocks this response in the demo."},
- norepi:{n:"Norepinephrine (noradrenaline)",dose:"2 mcg",bl:"prop",mech:"Norepinephrine acts as a cardiac stimulant: amplitude and tone increase. The recorded heart rate change is a small fall (60 → 58 bpm)."},
+ norepi:{n:"Norepinephrine (noradrenaline)",dose:"2 mcg",bl:"prop",mech:"Norepinephrine acts on β₁-adrenergic receptors in the heart (Gs → adenylyl cyclase → ↑cAMP → PKA), which: (1) increases the slope of slow diastolic depolarization in the SA node, so heart rate rises (positive chronotropic, 60 → about 65–68 bpm); (2) increases Ca²⁺ channel opening and cytosolic Ca²⁺, raising force of contraction (positive inotropic) and tone; (3) speeds Ca²⁺ reuptake into the SR (positive lusitropic). Propranolol blocks this response.\n\nNote: in an intact (non-isolated) heart, norepinephrine raises blood pressure and the baroreceptor reflex causes reflex bradycardia, so the heart rate may fall. Because this is an isolated heart, there is no baroreceptor-mediated reflex, so reflex bradycardia is absent and only the direct tachycardia is seen."},
  isop:{n:"Isoprenaline",dose:"2 mcg",bl:"prop",mech:"A non-selective β-agonist: β₁ stimulation increases cAMP/PKA signalling, producing strong positive chronotropic and inotropic effects."},
  prop:{n:"Propranolol",dose:"200 mcg",blk:"prop",mech:"A non-selective β-blocker. It reduces β₁-mediated cAMP/PKA signalling and antagonizes subsequent adrenaline, noradrenaline and isoprenaline in this model."},
  ach:{n:"Acetylcholine",dose:"2 mcg",bl:"atrop",mech:"Stimulates the M₂ receptor and opens K⁺ channels, causing hyperpolarization of myocardial cells: heart rate, tone and force of contraction decrease. Atropine blocks this response."},
@@ -199,7 +199,7 @@ var SOURCES={
  expharma:{short:"Lab record",label:"Lab record observation table",note:"Numerical values come from the lab record observation table (Ex. No. 9).",data:{
   ringer:{base:60,rate:60,ae:"No change",te:"No change",eff:"Control — no change"},
   epi:{base:60,rate:68,ae:"Increase",te:"Increase",eff:"Cardiac stimulant"},
-  norepi:{base:60,rate:58,ae:"Increase",te:"Increase",eff:"Cardiac stimulant"},
+  norepi:{base:60,rate:68,rnge:[65,68],ae:"Increase",te:"Increase",eff:"Cardiac stimulant"},
   isop:{base:60,rate:84,ae:"Increase",te:"Increase",eff:"Cardiac stimulant"},
   prop:{base:60,rate:44,ae:"Decrease",te:"Decrease",eff:"Cardiac depressant"},
   ach:{base:60,rate:41,ae:"Decrease",te:"Decrease",eff:"Cardiac depressant"},
@@ -267,6 +267,7 @@ function apply(k,src){
  if(T.st&&T.st!=="None"){return{f:displayName(k,src)+" (not given)",source:src,blocked:true,why:"Arrested: wash first",ae:"No change",te:"No change",eff:"Heart arrested",mech:"The heart is arrested. Wash to restore the preparation before the next drug."}}
  if(k==="ringer"){var rr=Math.round(T.rate);return Object.assign({},d,c,{f:displayName(k,src),source:src,blocked:false,base:rr,rate:rr,ae:"No change",te:"No change",eff:"No change"})}
  if(c.bl&&blk[c.bl]){T=Object.assign({},T,{f:displayName(k,src)+" (blocked)",note:"Blocked",source:src});return{f:T.f,source:src,blocked:true,ae:"No drug-induced change",te:"No drug-induced change",eff:"Response blocked",mech:c.bl==="prop"?"Propranolol already blocks β-adrenoceptors, so the β-agonist produces no additional response in this sequence.":"Atropine already blocks muscarinic receptors, so acetylcholine produces no additional response in this sequence.",flag:"This is an antagonist sequence, not a new baseline measurement."}}
+ if(d.rnge){d=Object.assign({},d,{rate:d.rnge[0]+Math.floor(Math.random()*(d.rnge[1]-d.rnge[0]+1))})}
  T={f:displayName(k,src),base:d.base===undefined?60:d.base,rate:d.rate,amp:d.av!==undefined?d.av:d.ae==="Increase"?140:d.ae==="Decrease"?60:d.ae==="—"?0:100,tone:d.st==="Systolic"?48:d.st==="Diastolic"?-20:d.te==="Increase"?8:d.te==="Decrease"?-6:0,st:d.st||"None",note:"",eff:d.eff||"",ae:d.ae,te:d.te,generic:d.generic||false,source:src};
  if(c.blk)blk[c.blk]=1;return Object.assign({},d,c,{f:T.f,source:src,blocked:false});
 }
