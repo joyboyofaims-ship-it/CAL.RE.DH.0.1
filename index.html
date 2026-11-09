@@ -190,6 +190,52 @@ html[data-theme=tom] nav a:nth-child(even){--c:#7fb2e5!important;--c2:#4f8fd6!im
 html[data-theme=tom] .scene::before{background:radial-gradient(closest-side,rgba(251,191,36,.4),transparent)}
 html[data-theme=tom] .scope{}
 @media (prefers-reduced-motion:reduce){#toast{transition:none}}
+/* --- Br - Ba (periodic-table lab) --- */
+#bbSmoke{position:fixed;left:0;top:0;width:100%;height:100%;z-index:0;pointer-events:none;display:none}html[data-theme=bb] #bbSmoke{display:block}
+.themes [data-t=bb]{background:linear-gradient(135deg,#06140f,#2e8b57 60%,#d9e021)}
+html[data-theme=bb]{background:#050a07;--struct:#9be37a;--mlabel:#d9e021}
+html[data-theme=bb] body{background:#050a07;color:#e6f2e6}
+html[data-theme=bb] body::before{background:radial-gradient(60% 40% at 15% 8%,rgba(46,139,87,.38),transparent 70%),radial-gradient(55% 40% at 92% 35%,rgba(217,224,33,.16),transparent 70%),radial-gradient(60% 45% at 20% 95%,rgba(20,90,60,.4),transparent 70%),linear-gradient(170deg,#04100a 0%,#07150e 55%,#030705 100%)}
+html[data-theme=bb] body::after{display:none;inset:-25%;opacity:.55;background:radial-gradient(40% 30% at 30% 60%,rgba(217,224,33,.30),transparent 70%),radial-gradient(35% 28% at 75% 35%,rgba(190,215,40,.22),transparent 70%),radial-gradient(30% 25% at 55% 85%,rgba(120,200,60,.18),transparent 70%);background-size:auto;background-position:0 0;-webkit-mask-image:none;mask-image:none;filter:blur(26px);animation:bbsmoke 22s ease-in-out infinite alternate}
+@keyframes bbsmoke{from{transform:translate(-4%,3%) rotate(0deg) scale(1)}to{transform:translate(5%,-5%) rotate(8deg) scale(1.15)}}
+html[data-theme=bb] .sub{color:#a9c4ae}
+html[data-theme=bb] .foot{color:#6f8f78}
+html[data-theme=bb] .hero{background:linear-gradient(160deg,#0f2a1e 0%,#143a28 50%,#0a1a12 100%);box-shadow:0 18px 50px rgba(46,139,87,.3),0 0 0 1px rgba(155,227,122,.3) inset}
+html[data-theme=bb] .hero .cap2{color:#d9e021}
+html[data-theme=bb] .themes button{border-color:rgba(155,227,122,.4)}
+html[data-theme=bb] nav{counter-reset:el}
+html[data-theme=bb] nav a{counter-increment:el;--c:#2e8b57!important;--c2:#d9e021!important;border-color:rgba(155,227,122,.3);border-radius:10px;background:linear-gradient(135deg,rgba(20,58,40,.85),rgba(8,24,16,.85))}
+html[data-theme=bb] nav a:nth-child(even){--c:#6fbf4a!important;--c2:#2e8b57!important}
+html[data-theme=bb] nav a .ic{position:relative;border-radius:6px;border:1.5px solid rgba(220,245,215,.85);background:linear-gradient(145deg,#2e8b57,#14543a);box-shadow:0 0 14px rgba(46,139,87,.5)}
+html[data-theme=bb] nav a .ic::before{content:counter(el);position:absolute;left:4px;top:1px;font:700 .55rem/1 system-ui,sans-serif;color:#eaffea}
+html[data-theme=bb] .scene::before{background:radial-gradient(closest-side,rgba(217,224,33,.35),transparent)}
+html[data-theme=bb] .mol{opacity:.45}
+.cat .hat{display:none}html[data-theme=bb] .cat .hat{display:inline}
+/* cat colours follow the theme */
+html{--ct:#8b7cf6;--ct2:#5b4bd1;--ct3:#3b2f9c;--cb:#ece7ff;--ci:#ff9de0;--ci2:#ffd9f3;--cn:#ff7ac8;--cm:#4a2a6a;--cg:rgba(124,92,255,.55)}
+html[data-theme=day]{--ct:#f3b3cf;--ct2:#d98bb0;--ct3:#b86a93;--cb:#fff7fb;--ci:#ffd1e3;--ci2:#fff0f6;--cn:#ff7a9c;--cm:#8a4a5e;--cg:rgba(236,130,180,.4)}
+html[data-theme=tom]{--ct:#7f9bb8;--ct2:#5a7896;--ct3:#46607c;--cb:#f6f1e7;--ci:#ff9db5;--ci2:#ffd3df;--cn:#ff7a9c;--cm:#7a3d2e;--cg:rgba(251,191,36,.35)}
+html[data-theme=bb]{--ct:#5f8a72;--ct2:#3e6350;--ct3:#2c4a3a;--cb:#e4efe0;--ci:#b6d98a;--ci2:#e1f2c4;--cn:#d9e021;--cm:#2c4a3a;--cg:rgba(217,224,33,.4)}
+.cat svg [fill="#7f9bb8"]{fill:var(--ct)}.cat svg [stroke="#7f9bb8"]{stroke:var(--ct)}
+.cat svg [stroke="#5a7896"]{stroke:var(--ct2)}.cat svg [stroke="#46607c"]{stroke:var(--ct3)}
+.cat svg [fill="#f6f1e7"]{fill:var(--cb)}
+.cat svg [fill="#ff9db5"]{fill:var(--ci)}.cat svg [stroke="#ffd3df"]{stroke:var(--ci2)}
+.cat svg [fill="#ff7a9c"]{fill:var(--cn)}.cat svg [stroke="#7a3d2e"]{stroke:var(--cm)}
+.cat svg{filter:drop-shadow(0 6px 14px var(--cg))}
+.cat .flower{display:none}html[data-theme=day] .cat .flower{display:inline}
+
+html[data-theme=bb] .float{font-family:Georgia,"Times New Roman",serif;font-size:1.1rem;color:#9be37a;opacity:.4}
+html[data-theme=bb] .apw [stroke="#eceaff"]{stroke:#d6f5c8}
+html[data-theme=bb] .apw [fill="#eceaff"]{fill:#d6f5c8}
+html[data-theme=bb] .apw path[stroke="#1a1230"]{stroke:#04100a}
+html[data-theme=bb] .apw [fill="#1a1230"]:not(.lab-panel){fill:#04100a}
+html[data-theme=bb] .apw circle[fill="#0c0820"]{fill:#04100a}
+html[data-theme=bb] .apw stop[stop-color="#0e0a22"]{stop-color:#04100a}
+html[data-theme=bb] .apw stop[stop-color="#2a2150"]{stop-color:#14543a}
+html[data-theme=bb] .apw [stroke="#8fa0ff"]{stroke:#6fbf4a}
+html[data-theme=bb] .apw [stroke="#c7d0ff"]{stroke:#d9e021}
+@media (prefers-reduced-motion:reduce){html[data-theme=bb] body::after{animation:none}}
+
 
 /* ===== LAB STICKERS ===== */
 html{--struct:#7dd3fc}
@@ -343,7 +389,7 @@ document.addEventListener("pointerdown",function(e){var a=hit(e);if(a)window.__c
 
 <main>
 <header class="hero"><img id="menuLogo" alt="Pharmacology CAL logo"><div class="cap2">Pharmacology CAL</div><svg class="hg" viewBox="0 0 60 100" aria-hidden="true"><g class="hgr"><path d="M14 10C14 30 28 40 30 50C32 40 46 30 46 10Z M30 50C28 60 14 70 14 90H46C46 70 32 60 30 50Z" fill="rgba(255,255,255,.1)" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/><path class="sd1" d="M17 12C17 30 29 38 30 48C31 38 43 30 43 12Z" fill="#fbbf24"/><path class="sd2" d="M17 88C17 72 29 62 30 54C31 62 43 72 43 88Z" fill="#fbbf24"/><path class="stm" d="M30 50V86" stroke="#fbbf24" stroke-width="1.6" stroke-dasharray="2 3" fill="none"/><rect x="8" y="3" width="44" height="7" rx="3" fill="currentColor"/><rect x="8" y="90" width="44" height="7" rx="3" fill="currentColor"/></g></svg></header>
-<div class="sub"><span>Pick a simulator 👇</span><div class="themes" role="group" aria-label="Theme"><button type="button" data-t="night" aria-label="Neon night" title="Neon night">🌙</button><button type="button" data-t="day" aria-label="Pastel day" title="Pastel day">☀️</button><button type="button" data-t="tom" aria-label="Tom blue and cheese" title="Tom blue and cheese">🧀</button></div></div>
+<div class="sub"><span>Pick a simulator 👇</span><div class="themes" role="group" aria-label="Theme"><button type="button" data-t="night" aria-label="Neon night" title="Neon night">🌙</button><button type="button" data-t="day" aria-label="Pastel day" title="Pastel day">☀️</button><button type="button" data-t="tom" aria-label="Tom blue and cheese" title="Tom blue and cheese">🧀</button><button type="button" data-t="bb" aria-label="Br Ba" title="Br • Ba">🧪</button></div></div>
 <nav aria-label="Simulators">
 <a href="dog.html" style="--i:0;--c:#fb923c;--c2:#f43f5e"><span class="ic" aria-hidden="true">🐕</span><span class="tx">Dog CV<small>Anesthetized dog blood pressure and heart rate (Ex. 9)</small></span><span class="go" aria-hidden="true">›</span></a>
 <a href="rabbit.html" style="--i:1;--c:#38bdf8;--c2:#6366f1"><span class="ic" aria-hidden="true">🐰</span><span class="tx">Rabbit eye<small>Pupil, light and corneal reflex, IOP</small></span><span class="go" aria-hidden="true">›</span></a>
@@ -528,7 +574,7 @@ document.addEventListener("pointerdown",function(e){var a=hit(e);if(a)window.__c
 <ellipse cx="100" cy="158" rx="50" ry="31" fill="#7f9bb8"/><ellipse cx="100" cy="166" rx="26" ry="20" fill="#f6f1e7"/>
 <ellipse cx="76" cy="184" rx="15" ry="8" fill="#f6f1e7"/><ellipse cx="124" cy="184" rx="15" ry="8" fill="#f6f1e7"/>
 <g class="head"><g class="ears"><path d="M52 88C42 64 42 40 52 29C57 25 63 28 68 32C78 40 88 50 96 62Z" fill="#7f9bb8" stroke="#7f9bb8" stroke-width="3" stroke-linejoin="round"/><path d="M148 88C158 64 158 40 148 29C143 25 137 28 132 32C122 40 112 50 104 62Z" fill="#7f9bb8" stroke="#7f9bb8" stroke-width="3" stroke-linejoin="round"/><path d="M60 78C54 63 54 48 59 40C66 45 74 53 81 63Z" fill="#ff9db5"/><path d="M140 78C146 63 146 48 141 40C134 45 126 53 119 63Z" fill="#ff9db5"/><path d="M62 70C60 62 60 56 62 51M138 70C140 62 140 56 138 51" stroke="#ffd3df" stroke-width="2.4" stroke-linecap="round"/></g>
-<ellipse cx="100" cy="100" rx="52" ry="44" fill="#7f9bb8"/><path d="M88 62q4 12 0 18M100 60v20M112 62q-4 12 0 18" stroke="#5a7896" stroke-width="4" stroke-linecap="round"/>
+<ellipse cx="100" cy="100" rx="52" ry="44" fill="#7f9bb8"/><path d="M88 62q4 12 0 18M100 60v20M112 62q-4 12 0 18" stroke="#5a7896" stroke-width="4" stroke-linecap="round"/><g class="hat"><ellipse cx="100" cy="62" rx="42" ry="7.5" fill="#121416"/><path d="M75 62L77.5 40Q100 34.5 122.5 40L125 62Q100 67 75 62Z" fill="#23262a"/><path d="M75.6 57.5Q100 62.5 124.4 57.5L125 62Q100 67 75 62Z" fill="#0b0c0d"/><ellipse cx="100" cy="39.5" rx="22.5" ry="4" fill="#2f3338"/><path d="M82 45Q100 49 118 45" stroke="#ffffff" stroke-opacity=".08" stroke-width="2" stroke-linecap="round"/></g><g class="flower"><g transform="translate(70 56)"><circle cx="0" cy="-6" r="4.6" fill="#fff"/><circle cx="5.7" cy="-1.9" r="4.6" fill="#fff"/><circle cx="3.5" cy="4.9" r="4.6" fill="#fff"/><circle cx="-3.5" cy="4.9" r="4.6" fill="#fff"/><circle cx="-5.7" cy="-1.9" r="4.6" fill="#fff"/><circle r="3.4" fill="#fbbf24"/></g></g>
 <ellipse cx="100" cy="116" rx="24" ry="17" fill="#f6f1e7"/>
 <g class="eye"><g class="pup"><ellipse cx="78" cy="101" rx="8" ry="10" fill="#1b1030"/><circle cx="81" cy="97" r="3" fill="#fff"/></g></g><g class="eye"><g class="pup"><ellipse cx="122" cy="101" rx="8" ry="10" fill="#1b1030"/><circle cx="125" cy="97" r="3" fill="#fff"/></g></g>
 <ellipse cx="62" cy="116" rx="9" ry="6" fill="#ff9db5" opacity=".6"/><ellipse cx="138" cy="116" rx="9" ry="6" fill="#ff9db5" opacity=".6"/>
@@ -553,7 +599,8 @@ window.__dnaDraw=function(){if(R)draw(0)};if(R)draw(0);else requestAnimationFram
 (function(){
 var T={night:{n:"🌙 Neon night",bar:"#0a1230",c1:"#38bdf8",c2:"#f472b6",f:["💊","🧬","⚕️","✨"]},
 day:{n:"☀️ Pastel day",bar:"#dbeafe",c1:"#2563eb",c2:"#db2777",f:["☀️","🧬","🌸","💊"]},
-tom:{n:"🧀 Tom blue & cheese",bar:"#16283f",c1:"#fbbf24",c2:"#7fb2e5",f:["🧀","🐭","🐟","🧀"]}};
+tom:{n:"🧀 Tom blue & cheese",bar:"#16283f",c1:"#fbbf24",c2:"#7fb2e5",f:["🧀","🐭","🐟","🧀"]},
+bb:{n:"🧪 Br • Ba",bar:"#050a07",c1:"#2e8b57",c2:"#d9e021",f:["C₁₀H₁₅N","Br","Ba","99.1%"]}};
 var root=document.documentElement,btns=document.querySelectorAll(".themes button"),fl=document.querySelectorAll(".float"),tw=document.getElementById("toast"),tm,meta=document.querySelector('meta[name="theme-color"]');
 function apply(k,say){var t=T[k]||T.night;k=T[k]?k:"night";root.setAttribute("data-theme",k);
 btns.forEach(function(b){b.setAttribute("aria-pressed",b.getAttribute("data-t")===k)});
@@ -563,7 +610,7 @@ window.__dna.c1=t.c1;window.__dna.c2=t.c2;if(window.__dnaDraw)window.__dnaDraw()
 if(say){tw.textContent=t.n;tw.classList.add("on");clearTimeout(tm);tm=setTimeout(function(){tw.classList.remove("on")},1400)}}
 var cur="night";try{cur=localStorage.getItem("pcalTheme")||"night"}catch(e){}
 apply(cur,false);
-btns.forEach(function(b){b.addEventListener("click",function(){var k=b.getAttribute("data-t");apply(k,true);try{localStorage.setItem("pcalTheme",k)}catch(e){}})});
+var eg=0,egt;btns.forEach(function(b){b.addEventListener("click",function(){var k=b.getAttribute("data-t");apply(k,true);if(k==="bb"){eg++;clearTimeout(egt);egt=setTimeout(function(){eg=0},1500);if(eg>=5){eg=0;tw.textContent="Cr \u2022 Br \u2022 Ba \u2014 99.1% pure \ud83e\uddea";tw.classList.add("on");clearTimeout(tm);tm=setTimeout(function(){tw.classList.remove("on")},2200)}}else eg=0;try{localStorage.setItem("pcalTheme",k)}catch(e){}})});
 })();
 </script>
 
@@ -1161,7 +1208,8 @@ window.addEventListener("pageshow",function(e){if(e.persisted){pending=null;clea
   var HUESET = {
     night: ['#a78bfa', '#60a5fa', '#22d3ee', '#34e0a1', '#f0abfc'].map(hex),
     day:   ['#6366f1', '#0ea5e9', '#14b8a6', '#ec4899', '#a855f7'].map(hex),
-    tom:   ['#fbbf24', '#60a5fa', '#fde68a', '#4f8fd6', '#f59e0b'].map(hex)
+    tom:   ['#fbbf24', '#60a5fa', '#fde68a', '#4f8fd6', '#f59e0b'].map(hex),
+    bb:    ['#2e8b57', '#9be37a', '#d9e021', '#6fbf4a', '#14543a'].map(hex)
   };
   var rootEl = document.documentElement;
   function hueColor(u) {
@@ -1404,6 +1452,71 @@ window.addEventListener("pageshow",function(e){if(e.persisted){pending=null;clea
   document.addEventListener('visibilitychange', function () { document.hidden ? stop() : start(); });
   items.forEach(function (it) { it.frame(0); });  // correct first picture before the first frame
   start();
+})();
+</script>
+<script>
+/* Br - Ba theme: drifting smoke (canvas, only runs while that theme is active) */
+(function(){
+var root=document.documentElement,cv=document.createElement("canvas");cv.id="bbSmoke";cv.setAttribute("aria-hidden","true");
+document.body.insertBefore(cv,document.body.firstChild);
+var cx=cv.getContext("2d"),W=0,H=0,SC=.5,raf=0,last=0,t=0,P=[],SP=[];
+var red=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+function rnd(a,b){return a+Math.random()*(b-a)}
+function mkSprite(col){
+  var n=160,c=document.createElement("canvas");c.width=c.height=n;var g=c.getContext("2d");
+  for(var i=0;i<70;i++){var a=rnd(0,6.283),d=Math.pow(Math.random(),.6)*52,r=rnd(8,34);
+    var x=n/2+Math.cos(a)*d,y=n/2+Math.sin(a)*d,gr=g.createRadialGradient(x,y,0,x,y,r);
+    gr.addColorStop(0,"rgba(255,255,255,.10)");gr.addColorStop(1,"rgba(255,255,255,0)");g.fillStyle=gr;g.fillRect(x-r,y-r,r*2,r*2)}
+  g.globalCompositeOperation="destination-in";
+  var m=g.createRadialGradient(n/2,n/2,0,n/2,n/2,n/2);m.addColorStop(0,"#000");m.addColorStop(.6,"rgba(0,0,0,.7)");m.addColorStop(1,"rgba(0,0,0,0)");
+  g.fillStyle=m;g.fillRect(0,0,n,n);
+  g.globalCompositeOperation="source-in";g.fillStyle=col;g.fillRect(0,0,n,n);return c}
+var EX=0,EY=0,GX=0,RISE=0,K=1;
+function geo(){
+  var m=document.querySelector("main"),r=m?m.getBoundingClientRect():{left:W*.1,width:W*.8},
+      mid=r.left+r.width/2,gut=Math.max(r.left/2,W*.1);
+  EX=mid-r.width*.12;EY=H*.86;GX=Math.max(EX-gut,40);RISE=H*.6;K=Math.min(1,W/900)*.6+.4}
+var PATHS=[
+ [[.276,.594],[.286,.50],[.292,.408],[.272,.332],[.285,.271],[.297,.268],[.300,.30]],
+ [[.276,.708],[.36,.624],[.421,.567],[.487,.506],[.505,.453]],
+ [[.386,.702],[.434,.673],[.487,.597],[.509,.571]],
+ [[.318,.651],[.276,.567],[.228,.468],[.171,.362],[.138,.332]]];
+function cr(a,u){var n=a.length-1,f=Math.min(u,.9999)*n,i=Math.floor(f),t=f-i,
+ p0=a[Math.max(i-1,0)],p1=a[i],p2=a[i+1],p3=a[Math.min(i+2,n)],t2=t*t,t3=t2*t;
+ function c(k){return .5*((2*p1[k])+(-p0[k]+p2[k])*t+(2*p0[k]-5*p1[k]+4*p2[k]-p3[k])*t2+(-p0[k]+3*p1[k]-3*p2[k]+p3[k])*t3)}
+ return [c(0),c(1)]}
+function spawn(p,init){
+  p.s=rnd(130,300)*K;p.vr=rnd(-.15,.15);p.rot=rnd(0,6.283);p.life=rnd(12,20);
+  p.age=init?rnd(0,p.life):0;p.sp=SP[(Math.random()*SP.length)|0];p.pk=rnd(.12,.22);
+  p.ph=rnd(0,6.283);p.amp=rnd(10,30)*K;p.off=rnd(-25,25)*K;p.path=(Math.random()*PATHS.length)|0;p.life=rnd(9,15);p.pk=rnd(.16,.28);return p}
+function size(){W=innerWidth;H=innerHeight;cv.width=Math.round(W*SC);cv.height=Math.round(H*SC);geo()}
+function init(){size();if(!SP.length)SP=[mkSprite("#d9e021"),mkSprite("#9be37a"),mkSprite("#4fbf6a")];
+  P=[];var n=W<600?16:24;for(var i=0;i<n;i++)P.push(spawn({},true))}
+function draw(dt){
+  cx.setTransform(1,0,0,1,0,0);cx.clearRect(0,0,cv.width,cv.height);
+  cx.globalCompositeOperation="lighter";
+  for(var i=0;i<P.length;i++){var p=P[i];p.age+=dt;if(p.age>p.life){spawn(p,false);continue}
+    p.rot+=p.vr*dt;
+    var u=p.age/p.life,q=cr(PATHS[p.path],u),
+        x=q[0]*W+p.off+Math.sin(u*6.283*1.5+p.ph)*p.amp,y=q[1]*H+p.off*.5,
+        sz=p.s*(.7+.7*u),a=p.pk*Math.sin(3.1416*Math.pow(u,.8));
+    cx.globalAlpha=a;cx.setTransform(SC,0,0,SC,x*SC,y*SC);cx.rotate(p.rot);
+    cx.drawImage(p.sp,-sz/2,-sz/2,sz,sz)}
+  cx.globalAlpha=1}
+function loop(ts){
+  raf=requestAnimationFrame(loop);
+  if(ts-last<33)return;
+  var dt=Math.min((ts-last)/1000,.05)*(red?.3:1);last=ts;t+=dt;
+  if(Date.now()<(window.__busyUntil||0))return;
+  draw(dt)}
+function on(){return root.getAttribute("data-theme")==="bb"&&!document.hidden}
+function sync(){
+  if(on()){if(!raf){if(!P.length)init();last=performance.now();raf=requestAnimationFrame(loop)}}
+  else if(raf){cancelAnimationFrame(raf);raf=0}}
+new MutationObserver(sync).observe(root,{attributes:true,attributeFilter:["data-theme"]});
+document.addEventListener("visibilitychange",sync);
+addEventListener("resize",function(){if(P.length)size()});
+sync();
 })();
 </script>
 </body></html>
