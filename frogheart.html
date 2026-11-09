@@ -2,6 +2,7 @@
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0f766e">
+<script>try{var __t=localStorage.getItem("pcalTheme"),__c={night:"#0a0820",day:"#eef3ff",tom:"#12233a",bb:"#050a07"}[__t];if(__c){document.documentElement.setAttribute("data-pcal",__t);var __m=document.querySelector("meta[name=theme-color]");if(__m)__m.setAttribute("content",__c)}}catch(e){}</script>
 <link rel="icon" href="data:,">
 <title>Frog Heart Pharmacology Lab</title>
 <style>
@@ -100,9 +101,29 @@ pre.dbg{font:12px/1.45 ui-monospace,Menlo,Consolas,monospace;white-space:pre-wra
 .figure canvas.kymo{width:100%;height:150px;border-radius:6px}
 html[data-theme="dark"]{--bg:#0c1517;--card:#142126;--ink:#e6f1ef;--mute:#9db8b4;--line:#27393d;--soft:#1d3a38;--brand:#14b8a6;--brand-ink:#04201c;--accent:#f2b84b;--ok:#2dd4bf;--warn:#fbbf24;--arrest:#a5b4fc;--info:#38bdf8;color-scheme:dark}html[data-theme="dark"] .quiz-option.incorrect{background:#4a3414}@media(prefers-color-scheme:dark){html:not([data-theme="light"]){--bg:#0c1517;--card:#142126;--ink:#e6f1ef;--mute:#9db8b4;--line:#27393d;--soft:#1d3a38;--brand:#14b8a6;--brand-ink:#04201c;--accent:#f2b84b;--ok:#2dd4bf;--warn:#fbbf24;--arrest:#a5b4fc;--info:#38bdf8;color-scheme:dark}html:not([data-theme="light"]) .quiz-option.incorrect{background:#4a3414}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
+/* P.CAL menu themes */
+:root[data-pcal="night"]{--bg:#0a0820;--card:#15122e;--ink:#ece9ff;--mute:#a59fd0;--line:#2b2552;--soft:#211a4a;--brand:#a78bfa;--brand-ink:#0a0820;--accent:#f2b84b;--ok:#34d399;--warn:#fbbf24;--arrest:#c4b5fd;--info:#38bdf8;color-scheme:dark}
+:root[data-pcal="day"]{--bg:#eef3ff;--card:#ffffff;--ink:#1e1b3a;--mute:#5f6b8a;--line:#dcd8f2;--soft:#ece8ff;--brand:#7c5cff;--brand-ink:#ffffff;--accent:#f2b84b;--ok:#047857;--warn:#b45309;--arrest:#4338ca;--info:#0369a1;color-scheme:light}
+:root[data-pcal="tom"]{--bg:#12233a;--card:#1b3354;--ink:#eaf2ff;--mute:#9db4d3;--line:#2c4a74;--soft:#24426b;--brand:#fbbf24;--brand-ink:#1a1a1a;--accent:#60a5fa;--ok:#4ade80;--warn:#fbbf24;--arrest:#a5b4fc;--info:#60a5fa;color-scheme:dark}
+:root[data-pcal="bb"]{--bg:#050a07;--card:#0c1812;--ink:#e6f2e6;--mute:#8fae98;--line:#1f3a2c;--soft:#123022;--brand:#9be37a;--brand-ink:#04100a;--accent:#d9e021;--ok:#7bd88f;--warn:#fbbf24;--arrest:#a5b4fc;--info:#38bdf8;color-scheme:dark}
+body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none}
+html[data-pcal=night] body::before{background:radial-gradient(60% 40% at 15% 0%,rgba(124,92,255,.28),transparent 70%),radial-gradient(50% 35% at 100% 40%,rgba(34,211,238,.12),transparent 70%)}
+html[data-pcal=day] body::before{background:radial-gradient(60% 40% at 10% 0%,rgba(147,197,253,.5),transparent 70%),radial-gradient(50% 40% at 100% 35%,rgba(244,184,222,.4),transparent 70%)}
+html[data-pcal=tom] body::before{background:radial-gradient(60% 40% at 15% 0%,rgba(96,165,250,.28),transparent 70%),radial-gradient(45% 35% at 100% 45%,rgba(251,191,36,.14),transparent 70%)}
+html[data-pcal=bb] body::before{background:radial-gradient(60% 40% at 12% 0%,rgba(46,139,87,.38),transparent 70%),radial-gradient(50% 35% at 100% 30%,rgba(217,224,33,.14),transparent 70%),radial-gradient(60% 40% at 20% 100%,rgba(20,90,60,.35),transparent 70%)}
+#thm{display:flex;gap:6px;align-items:center;flex:none}
+#thm button{width:36px;height:36px;border-radius:50%;border:2px solid transparent;font-size:16px;line-height:1;padding:0;cursor:pointer;opacity:.75;box-shadow:0 2px 6px rgba(0,0,0,.25);color:inherit}
+#thm button.on{opacity:1;border-color:var(--accent,var(--ac,var(--acc,var(--brand,#888))));transform:scale(1.08)}
+#thm [data-t=night]{background:linear-gradient(135deg,#1a1240,#7c5cff 60%,#22d3ee)}
+#thm [data-t=day]{background:linear-gradient(135deg,#bfdbfe,#f9a8d4)}
+#thm [data-t=tom]{background:linear-gradient(135deg,#1e3a5f,#60a5fa 55%,#fbbf24)}
+#thm [data-t=bb]{background:linear-gradient(135deg,#06140f,#2e8b57 60%,#d9e021)}
+html[data-pcal=night] .quiz-option.incorrect,html[data-pcal=tom] .quiz-option.incorrect,html[data-pcal=bb] .quiz-option.incorrect{background:#4a3414}
+html[data-pcal=day] .quiz-option.incorrect{background:#fdf1e0}
+#bTh{display:none}
 </style></head><body id="top">
 <header><div class="hwrap"><h1>Frog Heart Pharmacology Lab</h1><div class="sub">Perfused frog heart kymograph simulator</div>
-<div class="row wrap" style="margin-top:8px"><button type="button" class="btn xs" id="bTh">Theme: Auto</button><button type="button" class="btn xs" id="bFs">Text: 100%</button></div>
+<div class="row wrap" style="margin-top:8px"><span id="thm"><button type="button" data-t="night" aria-label="Neon night">🌙</button><button type="button" data-t="day" aria-label="Pastel day">☀️</button><button type="button" data-t="tom" aria-label="Tom blue and cheese">🧀</button><button type="button" data-t="bb" aria-label="Br Ba">🧪</button></span><button type="button" class="btn xs" id="bTh">Theme: Auto</button><button type="button" class="btn xs" id="bFs">Text: 100%</button></div>
 <nav aria-label="Page sections"><a href="#simulator">Simulator</a><a href="#observations">Observations</a><a href="#questions">Questions</a><a href="#dbgCard">Debug</a></nav></div></header>
 <main class="main">
 <section id="simulator" class="card" aria-label="Drum and injection">
@@ -412,4 +433,9 @@ $("bFs").onclick=function(){ui2.fs={1:1.15,1.15:1.3,1.3:1}[ui2.fs]||1;applyUi()}
 restore();updateNav();renderHist();sizeOv();drawOv();measure();syncSl();startLoop();
 })();
 </script>
+<script>(function(){var CC={night:"#0a0820",day:"#eef3ff",tom:"#12233a",bb:"#050a07"},bs=document.querySelectorAll("#thm button"),R=document.documentElement;
+function mark(){var c=R.getAttribute("data-pcal");bs.forEach(function(b){b.classList.toggle("on",b.getAttribute("data-t")===c)})}
+function tc(k){var m=document.querySelector("meta[name=theme-color]");if(m)m.setAttribute("content",CC[k])}
+bs.forEach(function(b){b.addEventListener("click",function(){var k=b.getAttribute("data-t");R.setAttribute("data-pcal",k);try{localStorage.setItem("pcalTheme",k)}catch(e){}tc(k);mark()})});
+var s=null;try{s=localStorage.getItem("pcalTheme")}catch(e){}if(s&&CC[s]){R.setAttribute("data-pcal",s);tc(s)}mark()})();</script>
 </body></html>

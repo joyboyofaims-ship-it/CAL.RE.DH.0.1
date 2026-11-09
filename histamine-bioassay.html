@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0f766e">
+<script>try{var __t=localStorage.getItem("pcalTheme"),__c={night:"#0a0820",day:"#eef3ff",tom:"#12233a",bb:"#050a07"}[__t];if(__c){document.documentElement.setAttribute("data-pcal",__t);var __m=document.querySelector("meta[name=theme-color]");if(__m)__m.setAttribute("content",__c)}}catch(e){}</script>
 <link rel="icon" href="data:,">
 <title>Histamine Bioassay Simulator</title>
 <script src="https://cdn.tailwindcss.com/3.4.17"></script>
@@ -46,6 +47,25 @@ canvas{display:block}
 .qa table{width:100%;border-collapse:collapse;font-size:12px;margin:6px 0}
 .qa th,.qa td{border:1px solid var(--line);padding:4px 6px;text-align:left;vertical-align:top}
 .qa th{background:var(--std-bg)}
+/* P.CAL menu themes */
+:root[data-pcal="night"]{--bg:#0a0820;--card:#15122e;--ink:#ece9ff;--mute:#a59fd0;--line:#2b2552;--acc:#a78bfa;--field:#0e0b24;--std:#f87171;--std-bg:#2c1618;--test:#60a5fa;--test-bg:#14243b;--warn:#fbbf24;--warnbg:#2a2110;--ok:#4ade80;--okbg:#0f2a1d;color-scheme:dark}
+:root[data-pcal="day"]{--bg:#eef3ff;--card:#fff;--ink:#1e1b3a;--mute:#5f6b8a;--line:#dcd8f2;--acc:#7c5cff;--field:#fff;--std:#dc2626;--std-bg:#fef2f2;--test:#2563eb;--test-bg:#eff6ff;--warn:#92400e;--warnbg:#fffbeb;--ok:#166534;--okbg:#ecfdf5;color-scheme:light}
+:root[data-pcal="tom"]{--bg:#12233a;--card:#1b3354;--ink:#eaf2ff;--mute:#9db4d3;--line:#2c4a74;--acc:#fbbf24;--field:#0e1c2f;--std:#f87171;--std-bg:#2c1618;--test:#60a5fa;--test-bg:#14243b;--warn:#fbbf24;--warnbg:#2a2110;--ok:#4ade80;--okbg:#0f2a1d;color-scheme:dark}
+:root[data-pcal="bb"]{--bg:#050a07;--card:#0c1812;--ink:#e6f2e6;--mute:#8fae98;--line:#1f3a2c;--acc:#9be37a;--field:#030705;--std:#f87171;--std-bg:#2c1618;--test:#60a5fa;--test-bg:#14243b;--warn:#fbbf24;--warnbg:#2a2110;--ok:#4ade80;--okbg:#0f2a1d;color-scheme:dark}
+body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none}
+html[data-pcal=night] body::before{background:radial-gradient(60% 40% at 15% 0%,rgba(124,92,255,.28),transparent 70%),radial-gradient(50% 35% at 100% 40%,rgba(34,211,238,.12),transparent 70%)}
+html[data-pcal=day] body::before{background:radial-gradient(60% 40% at 10% 0%,rgba(147,197,253,.5),transparent 70%),radial-gradient(50% 40% at 100% 35%,rgba(244,184,222,.4),transparent 70%)}
+html[data-pcal=tom] body::before{background:radial-gradient(60% 40% at 15% 0%,rgba(96,165,250,.28),transparent 70%),radial-gradient(45% 35% at 100% 45%,rgba(251,191,36,.14),transparent 70%)}
+html[data-pcal=bb] body::before{background:radial-gradient(60% 40% at 12% 0%,rgba(46,139,87,.38),transparent 70%),radial-gradient(50% 35% at 100% 30%,rgba(217,224,33,.14),transparent 70%),radial-gradient(60% 40% at 20% 100%,rgba(20,90,60,.35),transparent 70%)}
+#thm{display:flex;gap:6px;align-items:center;flex:none}
+#thm button{width:36px;height:36px;border-radius:50%;border:2px solid transparent;font-size:16px;line-height:1;padding:0;cursor:pointer;opacity:.75;box-shadow:0 2px 6px rgba(0,0,0,.25);color:inherit}
+#thm button.on{opacity:1;border-color:var(--accent,var(--ac,var(--acc,var(--brand,#888))));transform:scale(1.08)}
+#thm [data-t=night]{background:linear-gradient(135deg,#1a1240,#7c5cff 60%,#22d3ee)}
+#thm [data-t=day]{background:linear-gradient(135deg,#bfdbfe,#f9a8d4)}
+#thm [data-t=tom]{background:linear-gradient(135deg,#1e3a5f,#60a5fa 55%,#fbbf24)}
+#thm [data-t=bb]{background:linear-gradient(135deg,#06140f,#2e8b57 60%,#d9e021)}
+html[data-pcal=tom] button:not(.btn-std):not(.btn-test):not(.btn-ghost):not(#thm button),html[data-pcal=bb] button:not(.btn-std):not(.btn-test):not(.btn-ghost):not(#thm button){color:#1a1a1a}
+#thmrow{display:flex;justify-content:flex-end;margin:0 0 12px}
 </style>
 </head>
 <body class="p-3 sm:p-6 min-h-screen">
@@ -59,6 +79,7 @@ canvas{display:block}
       <span id="themeIcon">🌙</span> <span id="themeLabel">Dark</span>
     </button>
   </div>
+  <div id="thmrow"><span id="thm"><button type="button" data-t="night" aria-label="Neon night">🌙</button><button type="button" data-t="day" aria-label="Pastel day">☀️</button><button type="button" data-t="tom" aria-label="Tom blue and cheese">🧀</button><button type="button" data-t="bb" aria-label="Br Ba">🧪</button></span></div>
 
   <div class="card-box">
     <h2 class="text-sm font-semibold mb-3 text-slate-700 dark:text-slate-200 uppercase tracking-wider">1. Dose Setup &amp; Control</h2>
@@ -535,5 +556,12 @@ applyTheme(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)'
 setMode('match');
 render(false);
 </script>
+<script>(function(){var PC={night:{d:1,c:"#0a0820"},day:{d:0,c:"#eef3ff"},tom:{d:1,c:"#12233a"},bb:{d:1,c:"#050a07"}},R=document.documentElement,bs=document.querySelectorAll("#thm button");
+function mark(){var c=R.getAttribute("data-pcal")||(R.getAttribute("data-theme")==="dark"?"night":"day");bs.forEach(function(b){b.classList.toggle("on",b.getAttribute("data-t")===c)})}
+function save(k){try{localStorage.setItem("pcalTheme",k)}catch(e){}var m=document.querySelector("meta[name=theme-color]");if(m)m.setAttribute("content",PC[k].c)}
+function setPc(k){R.setAttribute("data-pcal",k);applyTheme(PC[k].d?"dark":"light");save(k);mark()}
+bs.forEach(function(b){b.addEventListener("click",function(){setPc(b.getAttribute("data-t"))})});
+document.getElementById("themeToggle").addEventListener("click",function(){var k=R.getAttribute("data-theme")==="light"?"day":((R.getAttribute("data-pcal")||"day")==="day"?"night":R.getAttribute("data-pcal"));R.setAttribute("data-pcal",k);save(k);mark()});
+var s=null;try{s=localStorage.getItem("pcalTheme")}catch(e){}if(s&&PC[s])setPc(s);else mark()})();</script>
 </body>
 </html>
